@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Scrubs Social</title>
     
+    <!-- Favicons (Update href with your GitHub paths) -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -52,6 +56,13 @@
         
         input:focus { outline: none; border-color: #14b8a6; ring: 2px; }
         textarea:focus { outline: none; border-color: #14b8a6; }
+        
+        /* Modal Animation */
+        @keyframes slide-up {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -61,7 +72,8 @@
         <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 transition-all-300">
             <div class="flex justify-center mb-6">
                 <div class="w-16 h-16 bg-teal-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30">
-                    <i data-lucide="activity" width="32" height="32"></i>
+                    <!-- Scrub Top Icon -->
+                    <i data-lucide="shirt" width="32" height="32"></i>
                 </div>
             </div>
             <h1 class="text-2xl font-bold text-center text-slate-800 mb-2">Scrubs Social</h1>
@@ -82,7 +94,6 @@
                 </div>
 
                 <button id="btn-google" class="w-full bg-white border border-slate-200 text-slate-700 rounded-xl py-3.5 font-bold shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform hover:bg-slate-50">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                     Continue with Google
                 </button>
 
@@ -120,43 +131,50 @@
     <div id="app-container" class="flex flex-col h-full hidden">
         
         <!-- Header -->
-        <header class="bg-white/90 backdrop-blur-md border-b border-gray-100 z-40 transition-all sticky top-0">
-            <div class="pt-safe px-4 pb-3 flex justify-between items-center">
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <header class="bg-white/95 backdrop-blur-md border-b border-gray-100 z-40 transition-all sticky top-0 shadow-sm">
+            <div class="pt-safe px-4 py-3 flex justify-between items-center">
+                <!-- Logo -->
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2" onclick="switchTab('home')">
                     <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white shadow-sm">
-                        <i data-lucide="activity" width="18"></i>
+                        <i data-lucide="shirt" width="18"></i>
                     </div>
                     Scrubs
                 </h1>
-                <button id="btn-logout" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-600 active:scale-90 transition-transform">
-                    <i data-lucide="log-out" width="16"></i>
-                </button>
-            </div>
-
-            <!-- Vibe Board -->
-            <div class="px-4 pb-3">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Shift Vibe</p>
-                <div class="flex gap-3 overflow-x-auto no-scrollbar" id="vibe-board">
-                    <!-- Vibes injected by JS -->
+                
+                <div class="flex items-center gap-3">
+                    <!-- Notification Bell -->
+                    <button onclick="switchTab('notifications')" class="relative p-2 rounded-full hover:bg-slate-100 transition-colors">
+                        <i data-lucide="bell" width="20" class="text-slate-600"></i>
+                        <span id="notif-badge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                    </button>
+                    <!-- Logout -->
+                    <button id="btn-logout" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-600 active:scale-90 transition-transform">
+                        <i data-lucide="log-out" width="14"></i>
+                    </button>
                 </div>
             </div>
         </header>
 
         <!-- Main Content Area -->
         <main id="main-content" class="flex-1 overflow-y-auto pb-safe scroll-smooth bg-slate-50 relative">
-            <div id="feed-container" class="pb-32 min-h-full">
-                <!-- Posts injected by JS -->
+            
+            <!-- Feed View -->
+            <div id="feed-container" class="pb-32 min-h-full pt-4">
                 <div class="flex justify-center pt-20">
                     <div class="loader"></div>
                 </div>
             </div>
 
+            <!-- Notifications View -->
+            <div id="notifications-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
+                <h2 class="text-xl font-bold text-slate-900 mb-4">Notifications</h2>
+                <div id="notifications-list" class="space-y-2"></div>
+            </div>
+
             <!-- Search/Community View -->
             <div id="search-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
                 <h2 class="text-xl font-bold text-slate-900 mb-2">Find Nurses</h2>
-                <p class="text-sm text-slate-500 mb-6">Build your care team network. (Emails are hidden)</p>
-                
-                <!-- Users List -->
+                <p class="text-sm text-slate-500 mb-6">Build your care team network. (Emails hidden)</p>
                 <div id="users-list" class="space-y-4">
                     <div class="flex justify-center pt-10"><div class="loader"></div></div>
                 </div>
@@ -166,29 +184,31 @@
              <div id="saved-view" class="hidden pt-10 px-6 text-center min-h-full bg-slate-50">
                 <i data-lucide="bookmark" class="mx-auto text-slate-300 mb-4" width="48"></i>
                 <h2 class="text-lg font-bold text-slate-400">Saved Posts</h2>
-                <p class="text-sm text-slate-400 mt-2">Your collection will appear here.</p>
+                <p class="text-sm text-slate-400 mt-2">Feature coming soon.</p>
             </div>
 
             <!-- Profile View -->
-            <div id="profile-view" class="hidden pt-10 px-4 min-h-full bg-slate-50 pb-32">
-                <div class="text-center mb-8">
+            <div id="profile-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
+                <div class="text-center mb-6">
                     <div class="relative inline-block group">
-                        <div id="profile-avatar" class="w-24 h-24 rounded-full bg-teal-100 mx-auto border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-teal-600 overflow-hidden cursor-pointer">
-                            <!-- Initials or Img -->
-                        </div>
+                        <div id="profile-avatar" class="w-24 h-24 rounded-full bg-teal-100 mx-auto border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-teal-600 overflow-hidden cursor-pointer"></div>
                         <div class="absolute bottom-0 right-0 bg-slate-900 text-white p-1.5 rounded-full border-2 border-white pointer-events-none shadow-md">
                             <i data-lucide="camera" width="14"></i>
                         </div>
-                        <!-- Hidden File Input for Avatar -->
                         <input type="file" id="profile-file-input" class="hidden" accept="image/*">
                     </div>
 
-                    <h2 id="profile-name" class="text-xl font-bold text-slate-900 mt-4"></h2>
+                    <h2 id="profile-name" class="text-xl font-bold text-slate-900 mt-3"></h2>
                     <p id="profile-role" class="text-slate-400 font-medium"></p>
-                    <p id="profile-email" class="text-xs text-slate-300 mt-1"></p>
+                    
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                        <span id="profile-visibility" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-600">Public</span>
+                        <p id="profile-email" class="text-xs text-slate-300 italic">(Hidden from others)</p>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Stats</h3>
+
+                <!-- Stats -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
                     <div class="flex justify-between text-center">
                         <div class="flex-1">
                             <div class="text-lg font-bold text-slate-900" id="stat-posts">0</div>
@@ -199,6 +219,28 @@
                             <div class="text-xs text-slate-400">Following</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Profile Settings -->
+                <div class="space-y-3 mb-8">
+                    <h3 class="font-bold text-slate-900 text-sm">Settings</h3>
+                    
+                    <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100">
+                        <span class="text-sm font-medium">Private Account</span>
+                        <button id="btn-toggle-private" class="w-10 h-6 bg-slate-200 rounded-full relative transition-colors">
+                            <span class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-sm"></span>
+                        </button>
+                    </div>
+
+                    <button id="btn-delete-account" class="w-full bg-red-50 text-red-600 border border-red-100 p-3 rounded-xl text-sm font-bold mt-4">
+                        Delete Account
+                    </button>
+                </div>
+
+                <!-- My Posts Grid -->
+                <h3 class="font-bold text-slate-900 text-sm mb-3">My Posts</h3>
+                <div id="my-posts-container" class="space-y-4 pb-10">
+                    <!-- Injected via JS -->
                 </div>
             </div>
         </main>
@@ -212,12 +254,10 @@
                     <button id="btn-submit-post" class="text-teal-600 font-bold disabled:opacity-50">Post</button>
                 </div>
                 
-                <textarea id="post-content" class="w-full h-24 resize-none outline-none text-lg placeholder:text-slate-300 mb-4" placeholder="What's happening on your shift?"></textarea>
+                <textarea id="post-content" class="w-full h-24 resize-none outline-none text-lg placeholder:text-slate-300 mb-4" placeholder="What's happening?"></textarea>
                 
                 <div class="border-t border-slate-100 pt-4">
                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Photo</label>
-                    
-                    <!-- File Input UI -->
                     <label for="post-image-file" class="flex flex-col items-center justify-center w-full h-24 bg-slate-50 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 transition-colors" id="file-drop-zone">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400">
                             <i data-lucide="image-plus" width="24" class="mb-2"></i>
@@ -226,17 +266,35 @@
                         <input id="post-image-file" type="file" accept="image/*" class="hidden" />
                     </label>
 
-                    <!-- Preview Container -->
                     <div id="image-preview-container" class="hidden relative mt-2 w-full h-32 bg-slate-100 rounded-xl overflow-hidden">
                         <img id="image-preview" src="" class="w-full h-full object-cover">
                         <button id="remove-image" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full backdrop-blur-sm">
                             <i data-lucide="x" width="16"></i>
                         </button>
                     </div>
+                    <div id="upload-status" class="hidden mt-2 text-xs text-teal-600 font-medium text-center animate-pulse">Uploading image...</div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Upload Status -->
-                    <div id="upload-status" class="hidden mt-2 text-xs text-teal-600 font-medium text-center animate-pulse">
-                        Uploading image...
+        <!-- Comments Modal -->
+        <div id="comments-modal" class="fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm hidden flex flex-col justify-end transition-all">
+            <div class="bg-white w-full h-[80vh] rounded-t-3xl shadow-2xl animate-slide-up flex flex-col">
+                <div class="flex justify-between items-center p-4 border-b border-gray-100">
+                    <h3 class="font-bold text-lg">Comments</h3>
+                    <button id="close-comments" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x" width="16"></i></button>
+                </div>
+                
+                <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Comments injected here -->
+                </div>
+
+                <div class="p-4 border-t border-gray-100 bg-white pb-safe">
+                    <div class="flex gap-2">
+                        <input type="text" id="comment-input" placeholder="Add a comment..." class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                        <button id="btn-submit-comment" class="bg-teal-600 text-white p-3 rounded-full font-bold shadow-md active:scale-95 disabled:opacity-50">
+                            <i data-lucide="send" width="18"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -245,12 +303,7 @@
         <!-- Floating Nav -->
         <div class="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none pb-safe">
             <div id="nav-dock" class="bg-slate-900 shadow-2xl transition-all-300 pointer-events-auto flex items-center overflow-hidden w-14 h-14 rounded-full justify-center cursor-pointer">
-                <!-- Collapsed State Icon -->
-                <div id="nav-menu-icon" class="text-white">
-                    <i data-lucide="menu" width="24"></i>
-                </div>
-
-                <!-- Expanded Items (Hidden initially) -->
+                <div id="nav-menu-icon" class="text-white"><i data-lucide="menu" width="24"></i></div>
                 <div id="nav-items" class="hidden w-full h-full flex items-center justify-between px-2">
                     <button onclick="switchTab('home')" class="nav-btn flex-1 flex justify-center text-teal-400" data-target="home"><i data-lucide="home" width="20"></i></button>
                     <button onclick="switchTab('search')" class="nav-btn flex-1 flex justify-center text-slate-400" data-target="search"><i data-lucide="search" width="20"></i></button>
@@ -269,38 +322,9 @@
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithPopup, 
-            GoogleAuthProvider, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged,
-            signOut,
-            updateProfile
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            query, 
-            orderBy, 
-            onSnapshot, 
-            serverTimestamp,
-            updateDoc,
-            doc,
-            arrayUnion,
-            arrayRemove,
-            setDoc,
-            getDoc,
-            getDocs
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { 
-            getStorage, 
-            ref, 
-            uploadBytes, 
-            getDownloadURL 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove, setDoc, getDoc, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         // --- Firebase Config ---
         const firebaseConfig = {
@@ -312,43 +336,32 @@
             appId: "1:87542166167:web:20e1272374577e14fcefd2"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // --- State ---
         let currentUser = null;
-        let currentUserData = null; // From Firestore users collection
+        let currentUserData = null;
         let selectedFile = null;
+        let activePostIdForComments = null;
 
-        // --- Auth Logic ---
-        
-        // Listener
+        // --- Auth & Init ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                // Fetch extra user data (Role & Following)
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists()) {
                     currentUserData = userDoc.data();
-                    if(!currentUserData.following) currentUserData.following = []; // Ensure array exists
+                    if(!currentUserData.following) currentUserData.following = [];
                 } else {
-                    // Create default if logging in via Google for first time
-                    currentUserData = {
-                        role: 'RN',
-                        displayName: user.displayName || 'Nurse',
-                        email: user.email,
-                        photoURL: user.photoURL,
-                        following: []
-                    };
+                    currentUserData = { role: 'RN', displayName: user.displayName || 'Nurse', email: user.email, photoURL: user.photoURL, following: [], isPrivate: false };
                     await setDoc(doc(db, "users", user.uid), currentUserData);
                 }
-
                 showApp();
                 initFeed();
+                initNotifications();
                 updateProfileUI();
             } else {
                 currentUser = null;
@@ -357,408 +370,330 @@
             }
         });
 
-        // Sign Up
-        document.getElementById('btn-signup').addEventListener('click', async () => {
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const name = document.getElementById('signup-name').value;
-            const role = document.getElementById('signup-role').value;
-
-            if(!email || !password || !name) return showError('Please fill all fields');
-
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(cred.user, { displayName: name });
-                // Store Role in Firestore
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    role: role,
-                    displayName: name,
-                    email: email,
-                    photoURL: null,
-                    following: []
-                });
-            } catch (error) {
-                showError(error.message);
-            }
+        // Basic Auth Listeners
+        document.getElementById('btn-signup').addEventListener('click', async () => { /* Signup Logic Same */ 
+             const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; const name = document.getElementById('signup-name').value; const role = document.getElementById('signup-role').value;
+             if(!email || !password || !name) return showError('Please fill all fields');
+             try { const cred = await createUserWithEmailAndPassword(auth, email, password); await updateProfile(cred.user, { displayName: name }); await setDoc(doc(db, "users", cred.user.uid), { role, displayName: name, email, photoURL: null, following: [], isPrivate: false }); } catch (error) { showError(error.message); }
         });
-
-        // Login
-        document.getElementById('btn-login').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            if(!email || !password) return showError('Please enter email and password');
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                showError('Invalid email or password.');
-            }
+        document.getElementById('btn-login').addEventListener('click', async () => { 
+             const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
+             try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { showError('Invalid credentials'); }
         });
-
-        // Google Login
-        document.getElementById('btn-google').addEventListener('click', async () => {
-            try {
-                await signInWithPopup(auth, googleProvider);
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-
-        // Logout
+        document.getElementById('btn-google').addEventListener('click', async () => { try { await signInWithPopup(auth, googleProvider); } catch(e) { showError(e.message); } });
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+        document.getElementById('switch-to-signup').addEventListener('click', () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); });
+        document.getElementById('switch-to-login').addEventListener('click', () => { document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); });
 
-        // Toggle Auth Forms
-        document.getElementById('switch-to-signup').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
-            document.getElementById('auth-error').classList.add('hidden');
-        });
-        document.getElementById('switch-to-login').addEventListener('click', () => {
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('auth-error').classList.add('hidden');
-        });
+        function showAuth() { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
+        function showApp() { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); }
+        function showError(msg) { const el = document.getElementById('auth-error'); el.innerText = msg; el.classList.remove('hidden'); }
 
-        // --- UI Logic ---
-
-        function showAuth() {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('hidden');
-        }
-
-        function showApp() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('auth-error');
-            el.innerText = msg;
-            el.classList.remove('hidden');
-        }
-
+        // --- Profile UI & Settings ---
         function updateProfileUI() {
-            if(!currentUser) return;
-            document.getElementById('profile-name').innerText = currentUserData.displayName || "User";
-            document.getElementById('profile-role').innerText = currentUserData.role || "RN";
-            // Ensure email privacy indication
-            document.getElementById('profile-email').innerText = currentUser.email + " (Visible only to you)";
+            if(!currentUser || !currentUserData) return;
+            document.getElementById('profile-name').innerText = currentUserData.displayName;
+            document.getElementById('profile-role').innerText = currentUserData.role;
             document.getElementById('stat-following').innerText = currentUserData.following ? currentUserData.following.length : 0;
             
             // Avatar
             const avatarEl = document.getElementById('profile-avatar');
-            if(currentUserData.photoURL || currentUser.photoURL) {
-                // Prioritize Firestore photoURL if available (as it might be newer)
-                const url = currentUserData.photoURL || currentUser.photoURL;
-                avatarEl.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+            const url = currentUserData.photoURL || currentUser.photoURL;
+            if(url) avatarEl.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+            else avatarEl.innerText = (currentUserData.displayName || "U")[0];
+
+            // Private/Public Toggle UI
+            const toggleBtn = document.getElementById('btn-toggle-private');
+            const visibilityLabel = document.getElementById('profile-visibility');
+            if(currentUserData.isPrivate) {
+                toggleBtn.classList.remove('bg-slate-200'); toggleBtn.classList.add('bg-teal-500');
+                toggleBtn.children[0].style.transform = 'translateX(16px)';
+                visibilityLabel.innerText = "Private"; visibilityLabel.classList.replace('bg-slate-200', 'bg-amber-100');
             } else {
-                avatarEl.innerText = (currentUserData.displayName || "U").charAt(0).toUpperCase();
+                toggleBtn.classList.remove('bg-teal-500'); toggleBtn.classList.add('bg-slate-200');
+                toggleBtn.children[0].style.transform = 'translateX(0px)';
+                visibilityLabel.innerText = "Public"; visibilityLabel.classList.replace('bg-amber-100', 'bg-slate-200');
             }
+
+            loadMyPosts();
         }
 
-        // --- Profile Picture Logic ---
-        const profileFileInput = document.getElementById('profile-file-input');
-        const profileAvatarBtn = document.getElementById('profile-avatar');
+        // Toggle Private Logic
+        document.getElementById('btn-toggle-private').addEventListener('click', async () => {
+            const newState = !currentUserData.isPrivate;
+            await updateDoc(doc(db, "users", currentUser.uid), { isPrivate: newState });
+            currentUserData.isPrivate = newState;
+            updateProfileUI();
+        });
 
-        profileAvatarBtn.addEventListener('click', () => profileFileInput.click());
-
-        profileFileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Show loading
-            profileAvatarBtn.innerHTML = '<div class="loader"></div>';
-
+        // Delete Account Logic
+        document.getElementById('btn-delete-account').addEventListener('click', async () => {
+            if(!confirm("Are you sure? This cannot be undone.")) return;
             try {
-                // Upload to Firebase Storage
-                const storageRef = ref(storage, `avatars/${currentUser.uid}_${Date.now()}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(snapshot.ref);
-
-                // Update Auth
-                await updateProfile(currentUser, { photoURL: url });
-
-                // Update Firestore
-                await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
-
-                // Update Local State & UI
-                currentUserData.photoURL = url;
-                updateProfileUI();
-
-            } catch (err) {
-                console.error("Error uploading avatar:", err);
-                alert("Failed to update profile picture.");
-                updateProfileUI(); // Reset UI on failure
+                // Delete user doc
+                await deleteDoc(doc(db, "users", currentUser.uid));
+                // Delete Auth User (requires recent login)
+                await deleteUser(currentUser);
+                window.location.reload();
+            } catch(e) {
+                alert("Please log out and log in again to delete your account for security reasons.");
             }
         });
 
-        // --- Feed Logic ---
-        
+        // Load My Posts for Profile
+        async function loadMyPosts() {
+            const container = document.getElementById('my-posts-container');
+            container.innerHTML = '<div class="loader mx-auto"></div>';
+            // FIX: Removed orderBy from query to prevent indexing error. Filtering in memory.
+            const q = query(collection(db, "posts"), where("authorId", "==", currentUser.uid));
+            const snapshot = await getDocs(q);
+            container.innerHTML = '';
+            
+            // Convert to array and sort manually in memory
+            const posts = [];
+            snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+            posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+            document.getElementById('stat-posts').innerText = posts.length;
+
+            if(posts.length === 0) { container.innerHTML = '<p class="text-center text-sm text-slate-400">No posts yet.</p>'; return; }
+
+            posts.forEach(post => {
+                const el = document.createElement('div');
+                el.className = "bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center";
+                el.innerHTML = `
+                    <div class="text-sm truncate w-3/4 font-medium text-slate-700">${post.content || 'Image Post'}</div>
+                    <button class="text-red-400 p-2 hover:bg-red-50 rounded-full btn-delete-post" data-id="${post.id}"><i data-lucide="trash-2" width="16"></i></button>
+                `;
+                el.querySelector('.btn-delete-post').addEventListener('click', (e) => deletePost(e.currentTarget.dataset.id));
+                container.appendChild(el);
+            });
+            lucide.createIcons();
+        }
+
+        async function deletePost(postId) {
+            if(!confirm("Delete this post?")) return;
+            await deleteDoc(doc(db, "posts", postId));
+            loadMyPosts(); // Refresh list
+        }
+
+        // --- Avatar Upload ---
+        document.getElementById('profile-avatar').addEventListener('click', () => document.getElementById('profile-file-input').click());
+        document.getElementById('profile-file-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            try {
+                const storageRef = ref(storage, `avatars/${currentUser.uid}_${Date.now()}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(snapshot.ref);
+                await updateProfile(currentUser, { photoURL: url });
+                await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
+                currentUserData.photoURL = url; updateProfileUI();
+            } catch(e) { alert("Upload failed"); }
+        });
+
+        // --- Feed & Posts ---
         function initFeed() {
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-            
             onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('feed-container');
-                container.innerHTML = ''; // Clear loading
-                
-                // Update profile stats
-                document.getElementById('stat-posts').innerText = snapshot.size;
-
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    const el = createPostElement(doc.id, post);
-                    container.appendChild(el);
-                });
-                
-                lucide.createIcons(); // Re-render icons
+                container.innerHTML = '';
+                snapshot.forEach((doc) => container.appendChild(createPostElement(doc.id, doc.data())));
+                lucide.createIcons();
             });
         }
 
         function createPostElement(id, post) {
             const isLiked = post.likes && post.likes.includes(currentUser.uid);
             const likeCount = post.likes ? post.likes.length : 0;
+            const isMyPost = post.authorId === currentUser.uid;
             
-            // Time calc
+            // Format time
             const date = post.createdAt ? post.createdAt.toDate() : new Date();
-            const timeDiff = Math.round((new Date() - date) / 1000 / 60); // minutes
-            let timeStr = timeDiff + 'm ago';
-            if (timeDiff > 60) timeStr = Math.round(timeDiff/60) + 'h ago';
-            
+            const timeDiff = Math.round((new Date() - date) / 1000 / 60);
+            const timeStr = timeDiff > 60 ? Math.round(timeDiff/60) + 'h ago' : timeDiff + 'm ago';
+
             const div = document.createElement('div');
             div.className = "mb-4 bg-white border-b border-gray-100 pb-4 animate-fade-in";
             div.innerHTML = `
                 <div class="px-4 py-3 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="relative">
-                            ${post.authorPhoto 
-                                ? `<img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-gray-100">`
-                                : `<div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold">${post.authorName[0]}</div>`
-                            }
-                            <div class="absolute -bottom-1 -right-1 bg-teal-500 text-[9px] text-white px-1.5 py-0.5 rounded-full border border-white font-bold">
-                                ${post.authorRole || 'RN'}
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-900">${post.authorName}</h3>
-                            <p class="text-xs text-slate-400">${timeStr}</p>
-                        </div>
+                        ${post.authorPhoto ? `<img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-gray-100">` : `<div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold">${post.authorName[0]}</div>`}
+                        <div><h3 class="text-sm font-bold text-slate-900">${post.authorName}</h3><p class="text-xs text-slate-400">${timeStr}</p></div>
                     </div>
+                    ${isMyPost ? `<button class="text-slate-300 hover:text-red-500 btn-delete-feed" data-id="${id}"><i data-lucide="trash-2" width="16"></i></button>` : ''}
                 </div>
-
-                ${post.image ? 
-                    `<div class="relative w-full bg-gray-100 mb-3">
-                        <img src="${post.image}" class="w-full h-auto object-cover max-h-[500px]" loading="lazy">
-                    </div>` 
-                    : 
-                    `<div class="mx-4 rounded-2xl p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-sm min-h-[160px] flex items-center justify-center text-center mb-3">
-                         <p class="text-lg font-medium leading-relaxed">${post.content}</p>
-                    </div>`
-                }
-
-                ${post.image ? 
-                    `<div class="px-4 mb-3">
-                        <p class="text-sm text-slate-800 leading-relaxed">
-                            <span class="font-bold mr-2">${post.authorName}</span>
-                            ${post.content}
-                        </p>
-                    </div>` : ''
-                }
-
+                ${post.image ? `<div class="relative w-full bg-gray-100 mb-3"><img src="${post.image}" class="w-full h-auto object-cover max-h-[500px]" loading="lazy"></div>` : `<div class="mx-4 rounded-2xl p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-sm min-h-[160px] flex items-center justify-center text-center mb-3"><p class="text-lg font-medium leading-relaxed">${post.content}</p></div>`}
+                ${post.image && post.content ? `<div class="px-4 mb-3"><p class="text-sm text-slate-800"><span class="font-bold mr-2">${post.authorName}</span>${post.content}</p></div>` : ''}
                 <div class="px-4 flex items-center gap-6">
-                    <button class="flex items-center gap-2 group active:scale-95 transition-transform btn-like" data-id="${id}">
+                    <button class="flex items-center gap-2 group active:scale-95 transition-transform btn-like" data-id="${id}" data-author="${post.authorId}">
                         <i data-lucide="heart" class="w-6 h-6 ${isLiked ? 'text-red-500 fill-red-500' : 'text-slate-800'} transition-colors"></i>
                         <span class="text-sm font-bold text-slate-800">${likeCount}</span>
                     </button>
-                    <button class="flex items-center gap-2 group active:scale-95 transition-transform">
+                    <button class="flex items-center gap-2 group active:scale-95 transition-transform btn-comment" data-id="${id}" data-author="${post.authorId}">
                         <i data-lucide="message-circle" class="w-6 h-6 text-slate-800"></i>
-                        <span class="text-sm font-bold text-slate-800">0</span>
+                        <span class="text-sm font-bold text-slate-800">${post.commentCount || 0}</span>
                     </button>
                     <div class="flex-1"></div>
-                    <button class="text-slate-800 active:scale-90 transition-transform">
-                        <i data-lucide="share-2" class="w-6 h-6"></i>
-                    </button>
+                    <button class="text-slate-800 active:scale-90 transition-transform btn-share" data-content="${post.content}"><i data-lucide="share-2" class="w-6 h-6"></i></button>
                 </div>
             `;
-            
-            // Attach Like Event
-            div.querySelector('.btn-like').addEventListener('click', async function() {
-                const postRef = doc(db, "posts", this.dataset.id);
-                if(isLiked) {
-                    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-                } else {
-                    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-                }
-            });
 
+            // Handlers
+            div.querySelector('.btn-like').addEventListener('click', (e) => toggleLike(id, post.authorId, isLiked));
+            div.querySelector('.btn-comment').addEventListener('click', () => openComments(id, post.authorId));
+            div.querySelector('.btn-share').addEventListener('click', () => sharePost(post.content || "Check out this post on Scrubs!"));
+            if(isMyPost) div.querySelector('.btn-delete-feed').addEventListener('click', () => deletePost(id));
+            
             return div;
         }
 
-        // --- Create Post & Image Upload Logic ---
-        const modal = document.getElementById('create-modal');
-        const fileInput = document.getElementById('post-image-file');
-        const previewContainer = document.getElementById('image-preview-container');
-        const previewImage = document.getElementById('image-preview');
-        const removeImageBtn = document.getElementById('remove-image');
-        const dropZone = document.getElementById('file-drop-zone');
-
-        document.getElementById('btn-create').addEventListener('click', () => {
-            modal.classList.remove('hidden');
-        });
-        document.getElementById('close-create').addEventListener('click', () => {
-            modal.classList.add('hidden');
-        });
-
-        // Handle File Selection
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                selectedFile = file;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewImage.src = e.target.result;
-                    previewContainer.classList.remove('hidden');
-                    dropZone.classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
+        async function toggleLike(postId, authorId, isLiked) {
+            const postRef = doc(db, "posts", postId);
+            if(isLiked) {
+                await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
+            } else {
+                await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
+                if(authorId !== currentUser.uid) sendNotification(authorId, "liked your post");
             }
+        }
+
+        // --- Comments Logic ---
+        const commentsModal = document.getElementById('comments-modal');
+        const commentsList = document.getElementById('comments-list');
+        let currentPostAuthorId = null;
+
+        function openComments(postId, authorId) {
+            activePostIdForComments = postId;
+            currentPostAuthorId = authorId;
+            commentsModal.classList.remove('hidden');
+            commentsList.innerHTML = '<div class="loader mx-auto"></div>';
+            
+            const q = query(collection(db, `posts/${postId}/comments`), orderBy("createdAt", "asc"));
+            onSnapshot(q, (snapshot) => {
+                commentsList.innerHTML = '';
+                if(snapshot.empty) commentsList.innerHTML = '<p class="text-center text-slate-400 text-sm">No comments yet.</p>';
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    const el = document.createElement('div');
+                    el.className = "flex gap-3 text-sm";
+                    el.innerHTML = `
+                        <div class="font-bold text-slate-900 shrink-0">${c.authorName}</div>
+                        <div class="text-slate-600">${c.text}</div>
+                    `;
+                    commentsList.appendChild(el);
+                });
+            });
+        }
+
+        document.getElementById('close-comments').addEventListener('click', () => commentsModal.classList.add('hidden'));
+        document.getElementById('btn-submit-comment').addEventListener('click', async () => {
+            const input = document.getElementById('comment-input');
+            const text = input.value;
+            if(!text || !activePostIdForComments) return;
+            
+            input.value = '';
+            await addDoc(collection(db, `posts/${activePostIdForComments}/comments`), {
+                text, authorName: currentUserData.displayName, authorId: currentUser.uid, createdAt: serverTimestamp()
+            });
+            // Update Comment Count on Post
+            const postRef = doc(db, "posts", activePostIdForComments);
+            // Ideally use transactions for counters, simplified here:
+            const postSnap = await getDoc(postRef);
+            await updateDoc(postRef, { commentCount: (postSnap.data().commentCount || 0) + 1 });
+            
+            if(currentPostAuthorId !== currentUser.uid) sendNotification(currentPostAuthorId, "commented on your post");
         });
 
-        // Remove Selected Image
-        removeImageBtn.addEventListener('click', () => {
-            selectedFile = null;
-            fileInput.value = '';
-            previewContainer.classList.add('hidden');
-            dropZone.classList.remove('hidden');
-        });
+        // --- Notifications ---
+        async function sendNotification(targetUserId, message) {
+            await addDoc(collection(db, "notifications"), {
+                targetUserId, message, fromUser: currentUserData.displayName, createdAt: serverTimestamp(), read: false
+            });
+        }
 
-        // Submit Post
+        function initNotifications() {
+            // FIX: Removed orderBy from query. Filter only by user, then sort in memory.
+            const q = query(collection(db, "notifications"), where("targetUserId", "==", currentUser.uid));
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('notifications-list');
+                const badge = document.getElementById('notif-badge');
+                list.innerHTML = '';
+                
+                const notifications = [];
+                snapshot.forEach(doc => notifications.push({ id: doc.id, ...doc.data(), ref: doc.ref }));
+                notifications.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                let unreadCount = 0;
+                
+                if(notifications.length === 0) {
+                    list.innerHTML = '<p class="text-center text-slate-400 mt-10">No notifications.</p>';
+                } else {
+                    notifications.forEach(n => {
+                        if(!n.read) unreadCount++;
+                        const el = document.createElement('div');
+                        el.className = `p-4 rounded-xl border border-slate-100 flex items-center gap-3 ${n.read ? 'bg-white' : 'bg-blue-50'}`;
+                        el.innerHTML = `
+                            <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 font-bold text-xs">${n.fromUser[0]}</div>
+                            <div class="text-sm"><span class="font-bold">${n.fromUser}</span> ${n.message}</div>
+                        `;
+                        list.appendChild(el);
+                        // Mark as read immediately on render for this demo
+                        if(!n.read) updateDoc(n.ref, { read: true }); 
+                    });
+                }
+                
+                if(unreadCount > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            });
+        }
+
+        // --- Share API ---
+        async function sharePost(text) {
+            if (navigator.share) {
+                try { await navigator.share({ title: 'Scrubs Social', text: text, url: window.location.href }); } 
+                catch (err) { console.log('Share canceled'); }
+            } else {
+                navigator.clipboard.writeText(text);
+                alert("Post text copied to clipboard!");
+            }
+        }
+
+        // --- Create Post (Same logic as before, ensuring it runs) ---
+        const createModal = document.getElementById('create-modal');
+        const postFileIn = document.getElementById('post-image-file');
+        const imgPreview = document.getElementById('image-preview');
+        const prevCont = document.getElementById('image-preview-container');
+        const dropZ = document.getElementById('file-drop-zone');
+        
+        document.getElementById('btn-create').addEventListener('click', () => createModal.classList.remove('hidden'));
+        document.getElementById('close-create').addEventListener('click', () => createModal.classList.add('hidden'));
+        postFileIn.addEventListener('change', (e) => {
+            const file = e.target.files[0]; if(file) { selectedFile = file; imgPreview.src = URL.createObjectURL(file); prevCont.classList.remove('hidden'); dropZ.classList.add('hidden'); }
+        });
+        document.getElementById('remove-image').addEventListener('click', () => { selectedFile = null; postFileIn.value = ''; prevCont.classList.add('hidden'); dropZ.classList.remove('hidden'); });
+
         document.getElementById('btn-submit-post').addEventListener('click', async () => {
             const content = document.getElementById('post-content').value;
-            const submitBtn = document.getElementById('btn-submit-post');
-            const uploadStatus = document.getElementById('upload-status');
-            
+            const btn = document.getElementById('btn-submit-post');
+            const status = document.getElementById('upload-status');
             if(!content && !selectedFile) return;
-
-            // UI Loading State
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Posting...";
-
+            btn.disabled = true; btn.innerText = "Posting...";
             try {
-                let imageUrl = null;
-
-                // Upload to Firebase Storage if file exists
-                if (selectedFile) {
-                    uploadStatus.classList.remove('hidden');
-                    const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${selectedFile.name}`);
-                    const snapshot = await uploadBytes(storageRef, selectedFile);
-                    imageUrl = await getDownloadURL(snapshot.ref);
+                let imgUrl = null;
+                if(selectedFile) {
+                    status.classList.remove('hidden');
+                    const refS = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+                    const snap = await uploadBytes(refS, selectedFile);
+                    imgUrl = await getDownloadURL(snap.ref);
                 }
-
-                // Save to Firestore
                 await addDoc(collection(db, "posts"), {
-                    authorName: currentUserData.displayName || currentUser.email,
-                    authorId: currentUser.uid,
-                    authorPhoto: currentUserData.photoURL || currentUser.photoURL,
-                    authorRole: currentUserData.role || 'RN',
-                    content: content,
-                    image: imageUrl || null,
-                    likes: [],
-                    createdAt: serverTimestamp()
+                    authorName: currentUserData.displayName, authorId: currentUser.uid, authorPhoto: currentUserData.photoURL, authorRole: currentUserData.role,
+                    content, image: imgUrl, likes: [], commentCount: 0, createdAt: serverTimestamp()
                 });
-
-                // Reset & Close
-                modal.classList.add('hidden');
-                document.getElementById('post-content').value = '';
-                selectedFile = null;
-                fileInput.value = '';
-                previewContainer.classList.add('hidden');
-                dropZone.classList.remove('hidden');
-                uploadStatus.classList.add('hidden');
-
-            } catch (e) {
-                console.error("Error adding post: ", e);
-                alert("Failed to post. Check console.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Post";
-            }
+                createModal.classList.add('hidden'); document.getElementById('post-content').value = ''; selectedFile = null; prevCont.classList.add('hidden'); dropZ.classList.remove('hidden'); status.classList.add('hidden');
+            } catch(e) { console.log(e); alert("Post failed"); }
+            btn.disabled = false; btn.innerText = "Post";
         });
-
-        // --- Search/Friends Logic ---
-
-        async function initSearch() {
-            const usersList = document.getElementById('users-list');
-            usersList.innerHTML = '<div class="flex justify-center pt-10"><div class="loader"></div></div>';
-
-            try {
-                // Get all users (Note: In production, limit this query)
-                const querySnapshot = await getDocs(collection(db, "users"));
-                usersList.innerHTML = ''; // Clear loading
-
-                const myFollowing = currentUserData.following || [];
-
-                querySnapshot.forEach((doc) => {
-                    if(doc.id === currentUser.uid) return; // Skip self
-
-                    const user = doc.data();
-                    const isFollowing = myFollowing.includes(doc.id);
-                    const userEl = document.createElement('div');
-                    userEl.className = "flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100";
-                    
-                    // Explicitly NOT rendering email here for privacy
-                    userEl.innerHTML = `
-                        <div class="flex items-center gap-3">
-                             <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-slate-200 overflow-hidden">
-                                ${user.photoURL ? `<img src="${user.photoURL}" class="w-full h-full object-cover">` : (user.displayName || "U")[0]}
-                             </div>
-                             <div>
-                                 <h4 class="font-bold text-sm text-slate-900">${user.displayName}</h4>
-                                 <p class="text-xs text-slate-500">${user.role || 'Nurse'}</p>
-                             </div>
-                        </div>
-                        <button class="btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isFollowing ? 'bg-slate-100 text-slate-500 border border-slate-200' : 'bg-teal-600 text-white shadow-md active:scale-95'}" data-uid="${doc.id}">
-                            ${isFollowing ? 'Following' : 'Follow'}
-                        </button>
-                    `;
-
-                    // Attach Follow Handler
-                    userEl.querySelector('.btn-follow').addEventListener('click', async (e) => {
-                         const btn = e.target;
-                         const targetId = btn.dataset.uid;
-                         await toggleFollow(targetId, btn);
-                    });
-
-                    usersList.appendChild(userEl);
-                });
-
-                if(usersList.children.length === 0) {
-                    usersList.innerHTML = '<p class="text-center text-slate-400 text-sm mt-10">No other users found yet.</p>';
-                }
-
-            } catch (error) {
-                console.error("Error fetching users:", error);
-                usersList.innerHTML = '<p class="text-center text-red-400 text-sm">Error loading users.</p>';
-            }
-        }
-
-        async function toggleFollow(targetId, btn) {
-            const myRef = doc(db, "users", currentUser.uid);
-            const isFollowing = currentUserData.following.includes(targetId);
-
-            // Optimistic UI update
-            if(isFollowing) {
-                 btn.innerText = "Follow";
-                 btn.className = "btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-teal-600 text-white shadow-md active:scale-95";
-                 currentUserData.following = currentUserData.following.filter(id => id !== targetId);
-                 await updateDoc(myRef, { following: arrayRemove(targetId) });
-            } else {
-                 btn.innerText = "Following";
-                 btn.className = "btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-500 border border-slate-200";
-                 currentUserData.following.push(targetId);
-                 await updateDoc(myRef, { following: arrayUnion(targetId) });
-            }
-            updateProfileUI(); // Update stats
-        }
 
         // --- Navigation Logic ---
         const navDock = document.getElementById('nav-dock');
@@ -769,78 +704,74 @@
         function toggleNav() {
             isNavExpanded = !isNavExpanded;
             if (isNavExpanded) {
-                navDock.classList.remove('w-14', 'h-14', 'rounded-full');
-                navDock.classList.add('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2');
-                navMenuIcon.classList.add('hidden');
-                setTimeout(() => navItems.classList.remove('hidden'), 100);
+                navDock.classList.remove('w-14', 'h-14', 'rounded-full'); navDock.classList.add('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2');
+                navMenuIcon.classList.add('hidden'); setTimeout(() => navItems.classList.remove('hidden'), 100);
             } else {
-                navItems.classList.add('hidden');
-                navDock.classList.remove('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2');
-                navDock.classList.add('w-14', 'h-14', 'rounded-full');
+                navItems.classList.add('hidden'); navDock.classList.remove('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2'); navDock.classList.add('w-14', 'h-14', 'rounded-full');
                 setTimeout(() => navMenuIcon.classList.remove('hidden'), 100);
             }
         }
+        navDock.addEventListener('click', (e) => { if (!isNavExpanded && e.target.closest('#nav-dock')) toggleNav(); });
+        document.getElementById('close-nav').addEventListener('click', (e) => { e.stopPropagation(); toggleNav(); });
 
-        navDock.addEventListener('click', (e) => {
-            if (!isNavExpanded && e.target.closest('#nav-dock')) toggleNav();
-        });
-
-        document.getElementById('close-nav').addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleNav();
-        });
-
-        // Tab Switching
         window.switchTab = (tabId) => {
-            // Hide all main content children except the one selected
-            document.getElementById('feed-container').classList.add('hidden');
-            document.getElementById('search-view').classList.add('hidden');
-            document.getElementById('saved-view').classList.add('hidden');
-            document.getElementById('profile-view').classList.add('hidden');
-
+            document.querySelectorAll('#main-content > div').forEach(el => el.classList.add('hidden'));
             if(tabId === 'home') document.getElementById('feed-container').classList.remove('hidden');
-            if(tabId === 'search') {
-                document.getElementById('search-view').classList.remove('hidden');
-                initSearch(); // Load users when tab is clicked
-            }
+            if(tabId === 'search') { document.getElementById('search-view').classList.remove('hidden'); initSearch(); }
             if(tabId === 'saved') document.getElementById('saved-view').classList.remove('hidden');
-            if(tabId === 'profile') document.getElementById('profile-view').classList.remove('hidden');
+            if(tabId === 'profile') { document.getElementById('profile-view').classList.remove('hidden'); updateProfileUI(); }
+            if(tabId === 'notifications') document.getElementById('notifications-view').classList.remove('hidden');
 
-            // Close nav
             if(isNavExpanded) toggleNav();
-            
-            // Update active state visuals
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if(btn.dataset.target === tabId) {
-                    btn.classList.add('text-teal-400');
-                    btn.classList.remove('text-slate-400');
-                } else {
-                    btn.classList.remove('text-teal-400');
-                    btn.classList.add('text-slate-400');
-                }
+                if(btn.dataset.target === tabId) { btn.classList.add('text-teal-400'); btn.classList.remove('text-slate-400'); }
+                else { btn.classList.remove('text-teal-400'); btn.classList.add('text-slate-400'); }
             });
         };
 
-        // --- Vibe Board Logic ---
-        const moods = [
-            { icon: 'sun', label: "Great", color: "text-orange-500", bg: "bg-orange-50" },
-            { icon: 'coffee', label: "Tired", color: "text-amber-700", bg: "bg-amber-100" },
-            { icon: 'zap', label: "Manic", color: "text-yellow-600", bg: "bg-yellow-100" },
-            { icon: 'cloud-rain', label: "Blue", color: "text-blue-500", bg: "bg-blue-50" },
-            { icon: 'frown', label: "Code Brown", color: "text-stone-500", bg: "bg-stone-200" }
-        ];
+        // Reuse Search Logic (Same as before)
+        async function initSearch() {
+            const list = document.getElementById('users-list'); list.innerHTML = '<div class="loader mx-auto"></div>';
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                list.innerHTML = '';
+                const myFollow = currentUserData.following || [];
+                snap.forEach(doc => {
+                    if(doc.id === currentUser.uid) return;
+                    const u = doc.data();
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100";
+                    const isFollowing = myFollow.includes(doc.id);
+                    el.innerHTML = `
+                        <div class="flex gap-3 items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden font-bold text-slate-500">${u.photoURL ? `<img src="${u.photoURL}" class="w-full h-full object-cover">` : u.displayName[0]}</div>
+                            <div><div class="font-bold text-sm">${u.displayName}</div><div class="text-xs text-slate-500">${u.role}</div></div>
+                        </div>
+                        <button class="px-4 py-1.5 rounded-full text-xs font-bold btn-follow ${isFollowing ? 'bg-slate-100 text-slate-500' : 'bg-teal-600 text-white shadow-md'}" data-id="${doc.id}">${isFollowing ? 'Following' : 'Follow'}</button>
+                    `;
+                    el.querySelector('.btn-follow').addEventListener('click', (e) => toggleFollow(doc.id, e.target));
+                    list.appendChild(el);
+                });
+            } catch(e) { list.innerHTML = 'Error'; }
+        }
 
-        const vibeBoard = document.getElementById('vibe-board');
-        moods.forEach(m => {
-            const btn = document.createElement('button');
-            btn.className = `flex items-center gap-2 px-4 py-2 rounded-full border border-transparent ${m.bg} ${m.color} active:scale-95 transition-transform whitespace-nowrap shrink-0`;
-            btn.innerHTML = `<i data-lucide="${m.icon}" width="16"></i> <span class="text-sm font-bold">${m.label}</span>`;
-            vibeBoard.appendChild(btn);
-        });
-        
-        // Initial Render
+        async function toggleFollow(tid, btn) {
+            const ref = doc(db, "users", currentUser.uid);
+            const isF = currentUserData.following.includes(tid);
+            if(isF) {
+                currentUserData.following = currentUserData.following.filter(id => id !== tid);
+                btn.innerText = "Follow"; btn.className = "px-4 py-1.5 rounded-full text-xs font-bold btn-follow bg-teal-600 text-white shadow-md";
+                await updateDoc(ref, { following: arrayRemove(tid) });
+            } else {
+                currentUserData.following.push(tid);
+                btn.innerText = "Following"; btn.className = "px-4 py-1.5 rounded-full text-xs font-bold btn-follow bg-slate-100 text-slate-500";
+                await updateDoc(ref, { following: arrayUnion(tid) });
+            }
+            updateProfileUI();
+        }
+
+        // Init
         lucide.createIcons();
-
     </script>
 </body>
 </html>
