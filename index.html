@@ -51,6 +51,7 @@
         }
         
         input:focus { outline: none; border-color: #14b8a6; ring: 2px; }
+        textarea:focus { outline: none; border-color: #14b8a6; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -150,28 +151,39 @@
                 </div>
             </div>
 
-            <!-- Search View (Hidden by default) -->
-            <div id="search-view" class="hidden pt-10 px-6 text-center min-h-full bg-slate-50">
-                <i data-lucide="search" class="mx-auto text-slate-300 mb-4" width="48"></i>
-                <h2 class="text-lg font-bold text-slate-400">Search Coming Soon</h2>
-                <p class="text-sm text-slate-400 mt-2">Filter the feed feature is in development.</p>
-                <button onclick="switchTab('home')" class="mt-6 text-teal-600 font-bold text-sm">Back to Feed</button>
+            <!-- Search/Community View -->
+            <div id="search-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Find Nurses</h2>
+                <p class="text-sm text-slate-500 mb-6">Build your care team network. (Emails are hidden)</p>
+                
+                <!-- Users List -->
+                <div id="users-list" class="space-y-4">
+                    <div class="flex justify-center pt-10"><div class="loader"></div></div>
+                </div>
             </div>
 
-             <!-- Saved View (Hidden by default) -->
+             <!-- Saved View -->
              <div id="saved-view" class="hidden pt-10 px-6 text-center min-h-full bg-slate-50">
                 <i data-lucide="bookmark" class="mx-auto text-slate-300 mb-4" width="48"></i>
                 <h2 class="text-lg font-bold text-slate-400">Saved Posts</h2>
                 <p class="text-sm text-slate-400 mt-2">Your collection will appear here.</p>
             </div>
 
-            <!-- Profile View (Hidden by default) -->
-            <div id="profile-view" class="hidden pt-10 px-4 min-h-full bg-slate-50">
+            <!-- Profile View -->
+            <div id="profile-view" class="hidden pt-10 px-4 min-h-full bg-slate-50 pb-32">
                 <div class="text-center mb-8">
-                    <div id="profile-avatar" class="w-24 h-24 rounded-full bg-teal-100 mx-auto mb-4 border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-teal-600">
-                        <!-- Initials -->
+                    <div class="relative inline-block group">
+                        <div id="profile-avatar" class="w-24 h-24 rounded-full bg-teal-100 mx-auto border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-teal-600 overflow-hidden cursor-pointer">
+                            <!-- Initials or Img -->
+                        </div>
+                        <div class="absolute bottom-0 right-0 bg-slate-900 text-white p-1.5 rounded-full border-2 border-white pointer-events-none shadow-md">
+                            <i data-lucide="camera" width="14"></i>
+                        </div>
+                        <!-- Hidden File Input for Avatar -->
+                        <input type="file" id="profile-file-input" class="hidden" accept="image/*">
                     </div>
-                    <h2 id="profile-name" class="text-xl font-bold text-slate-900"></h2>
+
+                    <h2 id="profile-name" class="text-xl font-bold text-slate-900 mt-4"></h2>
                     <p id="profile-role" class="text-slate-400 font-medium"></p>
                     <p id="profile-email" class="text-xs text-slate-300 mt-1"></p>
                 </div>
@@ -183,8 +195,8 @@
                             <div class="text-xs text-slate-400">Posts</div>
                         </div>
                         <div class="flex-1 border-l border-slate-100">
-                            <div class="text-lg font-bold text-slate-900">0</div>
-                            <div class="text-xs text-slate-400">Likes</div>
+                            <div class="text-lg font-bold text-slate-900" id="stat-following">0</div>
+                            <div class="text-xs text-slate-400">Following</div>
                         </div>
                     </div>
                 </div>
@@ -200,12 +212,31 @@
                     <button id="btn-submit-post" class="text-teal-600 font-bold disabled:opacity-50">Post</button>
                 </div>
                 
-                <textarea id="post-content" class="w-full h-32 resize-none outline-none text-lg placeholder:text-slate-300" placeholder="What's happening on your shift?"></textarea>
+                <textarea id="post-content" class="w-full h-24 resize-none outline-none text-lg placeholder:text-slate-300 mb-4" placeholder="What's happening on your shift?"></textarea>
                 
-                <div class="border-t border-slate-100 pt-4 mt-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Image URL (Optional)</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="post-image" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-500">
+                <div class="border-t border-slate-100 pt-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Photo</label>
+                    
+                    <!-- File Input UI -->
+                    <label for="post-image-file" class="flex flex-col items-center justify-center w-full h-24 bg-slate-50 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 transition-colors" id="file-drop-zone">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400">
+                            <i data-lucide="image-plus" width="24" class="mb-2"></i>
+                            <p class="text-xs">Tap to upload</p>
+                        </div>
+                        <input id="post-image-file" type="file" accept="image/*" class="hidden" />
+                    </label>
+
+                    <!-- Preview Container -->
+                    <div id="image-preview-container" class="hidden relative mt-2 w-full h-32 bg-slate-100 rounded-xl overflow-hidden">
+                        <img id="image-preview" src="" class="w-full h-full object-cover">
+                        <button id="remove-image" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full backdrop-blur-sm">
+                            <i data-lucide="x" width="16"></i>
+                        </button>
+                    </div>
+
+                    <!-- Upload Status -->
+                    <div id="upload-status" class="hidden mt-2 text-xs text-teal-600 font-medium text-center animate-pulse">
+                        Uploading image...
                     </div>
                 </div>
             </div>
@@ -261,8 +292,15 @@
             arrayUnion,
             arrayRemove,
             setDoc,
-            getDoc
+            getDoc,
+            getDocs
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { 
+            getStorage, 
+            ref, 
+            uploadBytes, 
+            getDownloadURL 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         // --- Firebase Config ---
         const firebaseConfig = {
@@ -278,11 +316,13 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         const googleProvider = new GoogleAuthProvider();
 
         // --- State ---
         let currentUser = null;
         let currentUserData = null; // From Firestore users collection
+        let selectedFile = null;
 
         // --- Auth Logic ---
         
@@ -290,17 +330,19 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                // Fetch extra user data (Role)
+                // Fetch extra user data (Role & Following)
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists()) {
                     currentUserData = userDoc.data();
+                    if(!currentUserData.following) currentUserData.following = []; // Ensure array exists
                 } else {
                     // Create default if logging in via Google for first time
                     currentUserData = {
                         role: 'RN',
                         displayName: user.displayName || 'Nurse',
                         email: user.email,
-                        photoURL: user.photoURL
+                        photoURL: user.photoURL,
+                        following: []
                     };
                     await setDoc(doc(db, "users", user.uid), currentUserData);
                 }
@@ -332,7 +374,8 @@
                     role: role,
                     displayName: name,
                     email: email,
-                    photoURL: null
+                    photoURL: null,
+                    following: []
                 });
             } catch (error) {
                 showError(error.message);
@@ -398,16 +441,56 @@
             if(!currentUser) return;
             document.getElementById('profile-name').innerText = currentUserData.displayName || "User";
             document.getElementById('profile-role').innerText = currentUserData.role || "RN";
-            document.getElementById('profile-email').innerText = currentUser.email;
+            // Ensure email privacy indication
+            document.getElementById('profile-email').innerText = currentUser.email + " (Visible only to you)";
+            document.getElementById('stat-following').innerText = currentUserData.following ? currentUserData.following.length : 0;
             
             // Avatar
             const avatarEl = document.getElementById('profile-avatar');
-            if(currentUser.photoURL) {
-                avatarEl.innerHTML = `<img src="${currentUser.photoURL}" class="w-full h-full rounded-full object-cover">`;
+            if(currentUserData.photoURL || currentUser.photoURL) {
+                // Prioritize Firestore photoURL if available (as it might be newer)
+                const url = currentUserData.photoURL || currentUser.photoURL;
+                avatarEl.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
             } else {
                 avatarEl.innerText = (currentUserData.displayName || "U").charAt(0).toUpperCase();
             }
         }
+
+        // --- Profile Picture Logic ---
+        const profileFileInput = document.getElementById('profile-file-input');
+        const profileAvatarBtn = document.getElementById('profile-avatar');
+
+        profileAvatarBtn.addEventListener('click', () => profileFileInput.click());
+
+        profileFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show loading
+            profileAvatarBtn.innerHTML = '<div class="loader"></div>';
+
+            try {
+                // Upload to Firebase Storage
+                const storageRef = ref(storage, `avatars/${currentUser.uid}_${Date.now()}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(snapshot.ref);
+
+                // Update Auth
+                await updateProfile(currentUser, { photoURL: url });
+
+                // Update Firestore
+                await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
+
+                // Update Local State & UI
+                currentUserData.photoURL = url;
+                updateProfileUI();
+
+            } catch (err) {
+                console.error("Error uploading avatar:", err);
+                alert("Failed to update profile picture.");
+                updateProfileUI(); // Reset UI on failure
+            }
+        });
 
         // --- Feed Logic ---
         
@@ -510,8 +593,14 @@
             return div;
         }
 
-        // --- Create Post Logic ---
+        // --- Create Post & Image Upload Logic ---
         const modal = document.getElementById('create-modal');
+        const fileInput = document.getElementById('post-image-file');
+        const previewContainer = document.getElementById('image-preview-container');
+        const previewImage = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image');
+        const dropZone = document.getElementById('file-drop-zone');
+
         document.getElementById('btn-create').addEventListener('click', () => {
             modal.classList.remove('hidden');
         });
@@ -519,33 +608,157 @@
             modal.classList.add('hidden');
         });
 
+        // Handle File Selection
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    dropZone.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Remove Selected Image
+        removeImageBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            previewContainer.classList.add('hidden');
+            dropZone.classList.remove('hidden');
+        });
+
+        // Submit Post
         document.getElementById('btn-submit-post').addEventListener('click', async () => {
             const content = document.getElementById('post-content').value;
-            const imageUrl = document.getElementById('post-image').value;
+            const submitBtn = document.getElementById('btn-submit-post');
+            const uploadStatus = document.getElementById('upload-status');
             
-            if(!content && !imageUrl) return;
+            if(!content && !selectedFile) return;
 
-            // Close modal immediately for better UX
-            modal.classList.add('hidden');
-            document.getElementById('post-content').value = '';
-            document.getElementById('post-image').value = '';
+            // UI Loading State
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Posting...";
 
             try {
+                let imageUrl = null;
+
+                // Upload to Firebase Storage if file exists
+                if (selectedFile) {
+                    uploadStatus.classList.remove('hidden');
+                    const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${selectedFile.name}`);
+                    const snapshot = await uploadBytes(storageRef, selectedFile);
+                    imageUrl = await getDownloadURL(snapshot.ref);
+                }
+
+                // Save to Firestore
                 await addDoc(collection(db, "posts"), {
                     authorName: currentUserData.displayName || currentUser.email,
                     authorId: currentUser.uid,
-                    authorPhoto: currentUser.photoURL,
+                    authorPhoto: currentUserData.photoURL || currentUser.photoURL,
                     authorRole: currentUserData.role || 'RN',
                     content: content,
                     image: imageUrl || null,
                     likes: [],
                     createdAt: serverTimestamp()
                 });
+
+                // Reset & Close
+                modal.classList.add('hidden');
+                document.getElementById('post-content').value = '';
+                selectedFile = null;
+                fileInput.value = '';
+                previewContainer.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+                uploadStatus.classList.add('hidden');
+
             } catch (e) {
                 console.error("Error adding post: ", e);
                 alert("Failed to post. Check console.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Post";
             }
         });
+
+        // --- Search/Friends Logic ---
+
+        async function initSearch() {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '<div class="flex justify-center pt-10"><div class="loader"></div></div>';
+
+            try {
+                // Get all users (Note: In production, limit this query)
+                const querySnapshot = await getDocs(collection(db, "users"));
+                usersList.innerHTML = ''; // Clear loading
+
+                const myFollowing = currentUserData.following || [];
+
+                querySnapshot.forEach((doc) => {
+                    if(doc.id === currentUser.uid) return; // Skip self
+
+                    const user = doc.data();
+                    const isFollowing = myFollowing.includes(doc.id);
+                    const userEl = document.createElement('div');
+                    userEl.className = "flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100";
+                    
+                    // Explicitly NOT rendering email here for privacy
+                    userEl.innerHTML = `
+                        <div class="flex items-center gap-3">
+                             <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-slate-200 overflow-hidden">
+                                ${user.photoURL ? `<img src="${user.photoURL}" class="w-full h-full object-cover">` : (user.displayName || "U")[0]}
+                             </div>
+                             <div>
+                                 <h4 class="font-bold text-sm text-slate-900">${user.displayName}</h4>
+                                 <p class="text-xs text-slate-500">${user.role || 'Nurse'}</p>
+                             </div>
+                        </div>
+                        <button class="btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isFollowing ? 'bg-slate-100 text-slate-500 border border-slate-200' : 'bg-teal-600 text-white shadow-md active:scale-95'}" data-uid="${doc.id}">
+                            ${isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                    `;
+
+                    // Attach Follow Handler
+                    userEl.querySelector('.btn-follow').addEventListener('click', async (e) => {
+                         const btn = e.target;
+                         const targetId = btn.dataset.uid;
+                         await toggleFollow(targetId, btn);
+                    });
+
+                    usersList.appendChild(userEl);
+                });
+
+                if(usersList.children.length === 0) {
+                    usersList.innerHTML = '<p class="text-center text-slate-400 text-sm mt-10">No other users found yet.</p>';
+                }
+
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                usersList.innerHTML = '<p class="text-center text-red-400 text-sm">Error loading users.</p>';
+            }
+        }
+
+        async function toggleFollow(targetId, btn) {
+            const myRef = doc(db, "users", currentUser.uid);
+            const isFollowing = currentUserData.following.includes(targetId);
+
+            // Optimistic UI update
+            if(isFollowing) {
+                 btn.innerText = "Follow";
+                 btn.className = "btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-teal-600 text-white shadow-md active:scale-95";
+                 currentUserData.following = currentUserData.following.filter(id => id !== targetId);
+                 await updateDoc(myRef, { following: arrayRemove(targetId) });
+            } else {
+                 btn.innerText = "Following";
+                 btn.className = "btn-follow px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-500 border border-slate-200";
+                 currentUserData.following.push(targetId);
+                 await updateDoc(myRef, { following: arrayUnion(targetId) });
+            }
+            updateProfileUI(); // Update stats
+        }
 
         // --- Navigation Logic ---
         const navDock = document.getElementById('nav-dock');
@@ -586,7 +799,10 @@
             document.getElementById('profile-view').classList.add('hidden');
 
             if(tabId === 'home') document.getElementById('feed-container').classList.remove('hidden');
-            if(tabId === 'search') document.getElementById('search-view').classList.remove('hidden');
+            if(tabId === 'search') {
+                document.getElementById('search-view').classList.remove('hidden');
+                initSearch(); // Load users when tab is clicked
+            }
             if(tabId === 'saved') document.getElementById('saved-view').classList.remove('hidden');
             if(tabId === 'profile') document.getElementById('profile-view').classList.remove('hidden');
 
