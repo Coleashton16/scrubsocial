@@ -2,333 +2,179 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Scrubs Social</title>
-    
-    <!-- Favicons (Update href with your GitHub paths) -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrubs Social - Healthcare Networking</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        /* Mobile Optimization Overrides */
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: none; /* Prevent rubber-banding */
-            user-select: none;
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Safe Area Padding for iPhones */
-        .pt-safe { padding-top: env(safe-area-inset-top, 20px); }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* Hide Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Smooth Transitions */
-        .transition-all-300 { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* Loading Spinner */
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #14b8a6;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Auth Screen Background */
-        .auth-bg {
-            background-image: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
+        .auth-gradient {
+            background: radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent),
+                        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent);
         }
-        
-        input:focus { outline: none; border-color: #14b8a6; ring: 2px; }
-        textarea:focus { outline: none; border-color: #14b8a6; }
-        
-        /* Modal Animation */
-        @keyframes slide-up {
+
+        .nav-dock {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        .animate-slide-up { animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-900 overflow-x-hidden">
 
-    <!-- ================= AUTH SCREEN ================= -->
-    <div id="auth-screen" class="fixed inset-0 z-50 auth-bg flex flex-col items-center justify-center p-6 hidden">
-        <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 transition-all-300">
-            <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 bg-teal-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30">
-                    <!-- Scrub Top Icon -->
-                    <i data-lucide="shirt" width="32" height="32"></i>
+    <!-- Auth Container -->
+    <div id="auth-container" class="hidden min-h-screen auth-gradient flex flex-col items-center justify-center p-6">
+        <div class="w-full max-w-sm">
+            <div class="flex justify-center mb-8">
+                <div class="w-20 h-20 bg-teal-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-teal-500/30 -rotate-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shirt"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.97V21a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5.43a2 2 0 0 0-1.62-1.97z"/><path d="M12 5v16"/><path d="m16 2-4 3-4-3"/></svg>
                 </div>
             </div>
-            <h1 class="text-2xl font-bold text-center text-slate-800 mb-2">Scrubs Social</h1>
-            <p class="text-center text-slate-500 text-sm mb-8">The shift log for nurses.</p>
-
-            <!-- Error Message -->
-            <div id="auth-error" class="hidden bg-red-50 text-red-500 text-xs p-3 rounded-lg mb-4 text-center"></div>
-
-            <!-- Login Form -->
-            <div id="login-form">
-                <input type="email" id="login-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-3 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none transition-all">
-                <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none transition-all">
-                <button id="btn-login" class="w-full bg-slate-900 text-white rounded-xl py-3.5 font-bold shadow-lg active:scale-95 transition-transform">Log In</button>
+            <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-8">
+                <h2 id="auth-title" class="text-2xl font-bold text-slate-800 text-center mb-2">Welcome Back</h2>
+                <p class="text-slate-500 text-center text-sm mb-8">The social network for healthcare pros.</p>
+                <div id="auth-error" class="hidden bg-red-50 text-red-500 text-xs p-3 rounded-lg mb-4 text-center border border-red-100"></div>
                 
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">Or</span></div>
+                <form id="auth-form" class="space-y-4">
+                    <div id="signup-fields" class="hidden space-y-4">
+                        <input type="text" id="auth-name" placeholder="Full Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
+                        <select id="auth-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
+                            <option value="RN">Registered Nurse (RN)</option>
+                            <option value="LPN">LPN / LVN</option>
+                            <option value="NP">Nurse Practitioner</option>
+                            <option value="Student">Nursing Student</option>
+                            <option value="MD/DO">MD / DO</option>
+                            <option value="CNA">CNA / Tech</option>
+                        </select>
+                    </div>
+                    <input type="email" id="auth-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
+                    <input type="password" id="auth-pass" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
+                    <button type="submit" id="auth-submit-btn" class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-600/20 active:scale-95 transition-all">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="mt-6 flex items-center justify-between text-sm">
+                    <span id="auth-toggle-text" class="text-slate-400">New here?</span>
+                    <button id="auth-toggle-btn" class="font-bold text-teal-600 hover:underline">Create Account</button>
                 </div>
-
-                <button id="btn-google" class="w-full bg-white border border-slate-200 text-slate-700 rounded-xl py-3.5 font-bold shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform hover:bg-slate-50">
-                    Continue with Google
-                </button>
-
-                <p class="text-center mt-6 text-sm text-slate-500">
-                    New here? <button id="switch-to-signup" class="text-teal-600 font-bold hover:underline">Create Account</button>
-                </p>
-            </div>
-
-            <!-- Signup Form -->
-            <div id="signup-form" class="hidden">
-                <div class="flex gap-2 mb-3">
-                    <input type="text" id="signup-name" placeholder="Display Name" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
-                    <select id="signup-role" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-2 py-3 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none text-slate-600">
-                        <option value="RN">RN</option>
-                        <option value="LPN">LPN</option>
-                        <option value="Student">Student</option>
-                        <option value="CNA">CNA</option>
-                        <option value="MD/DO">MD/DO</option>
-                        <option value="Tech">Tech</option>
-                    </select>
-                </div>
-                <input type="email" id="signup-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-3 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
-                <input type="password" id="signup-password" placeholder="Password (6+ chars)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
-                
-                <button id="btn-signup" class="w-full bg-teal-600 text-white rounded-xl py-3.5 font-bold shadow-lg active:scale-95 transition-transform">Create Account</button>
-                
-                <p class="text-center mt-6 text-sm text-slate-500">
-                    Have an account? <button id="switch-to-login" class="text-slate-900 font-bold hover:underline">Log In</button>
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- ================= APP CONTAINER ================= -->
-    <div id="app-container" class="flex flex-col h-full hidden">
-        
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden h-screen w-full flex flex-col overflow-hidden">
         <!-- Header -->
-        <header class="bg-white/95 backdrop-blur-md border-b border-gray-100 z-40 transition-all sticky top-0 shadow-sm">
-            <div class="pt-safe px-4 py-3 flex justify-between items-center">
-                <!-- Logo -->
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2" onclick="switchTab('home')">
-                    <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white shadow-sm">
-                        <i data-lucide="shirt" width="18"></i>
-                    </div>
-                    Scrubs
-                </h1>
-                
-                <div class="flex items-center gap-3">
-                    <!-- Notification Bell -->
-                    <button onclick="switchTab('notifications')" class="relative p-2 rounded-full hover:bg-slate-100 transition-colors">
-                        <i data-lucide="bell" width="20" class="text-slate-600"></i>
-                        <span id="notif-badge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden"></span>
-                    </button>
-                    <!-- Logout -->
-                    <button id="btn-logout" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-600 active:scale-90 transition-transform">
-                        <i data-lucide="log-out" width="14"></i>
-                    </button>
+        <header class="glass-header border-b border-slate-200 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <div class="w-9 h-9 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.97V21a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5.43a2 2 0 0 0-1.62-1.97z"/><path d="M12 5v16"/><path d="m16 2-4 3-4-3"/></svg>
                 </div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-800">Scrubs</h1>
             </div>
+            <button onclick="navigateTo('notifications')" class="relative w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <span id="notif-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white text-[10px] font-bold text-white flex items-center justify-center px-1">0</span>
+            </button>
         </header>
 
-        <!-- Main Content Area -->
-        <main id="main-content" class="flex-1 overflow-y-auto pb-safe scroll-smooth bg-slate-50 relative">
-            
-            <!-- Feed View -->
-            <div id="feed-container" class="pb-32 min-h-full pt-4">
-                <div class="flex justify-center pt-20">
-                    <div class="loader"></div>
-                </div>
-            </div>
-
-            <!-- Notifications View -->
-            <div id="notifications-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
-                <h2 class="text-xl font-bold text-slate-900 mb-4">Notifications</h2>
-                <div id="notifications-list" class="space-y-2"></div>
-            </div>
-
-            <!-- Search/Community View -->
-            <div id="search-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
-                <h2 class="text-xl font-bold text-slate-900 mb-2">Find Nurses</h2>
-                <p class="text-sm text-slate-500 mb-6">Build your care team network. (Emails hidden)</p>
-                <div id="users-list" class="space-y-4">
-                    <div class="flex justify-center pt-10"><div class="loader"></div></div>
-                </div>
-            </div>
-
-             <!-- Saved View -->
-             <div id="saved-view" class="hidden pt-10 px-6 text-center min-h-full bg-slate-50">
-                <i data-lucide="bookmark" class="mx-auto text-slate-300 mb-4" width="48"></i>
-                <h2 class="text-lg font-bold text-slate-400">Saved Posts</h2>
-                <p class="text-sm text-slate-400 mt-2">Feature coming soon.</p>
-            </div>
-
-            <!-- Profile View -->
-            <div id="profile-view" class="hidden pt-6 px-4 min-h-full bg-slate-50 pb-32">
-                <div class="text-center mb-6">
-                    <div class="relative inline-block group">
-                        <div id="profile-avatar" class="w-24 h-24 rounded-full bg-teal-100 mx-auto border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-teal-600 overflow-hidden cursor-pointer"></div>
-                        <div class="absolute bottom-0 right-0 bg-slate-900 text-white p-1.5 rounded-full border-2 border-white pointer-events-none shadow-md">
-                            <i data-lucide="camera" width="14"></i>
-                        </div>
-                        <input type="file" id="profile-file-input" class="hidden" accept="image/*">
-                    </div>
-
-                    <h2 id="profile-name" class="text-xl font-bold text-slate-900 mt-3"></h2>
-                    <p id="profile-role" class="text-slate-400 font-medium"></p>
-                    
-                    <div class="flex items-center justify-center gap-2 mt-2">
-                        <span id="profile-visibility" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-600">Public</span>
-                        <p id="profile-email" class="text-xs text-slate-300 italic">(Hidden from others)</p>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
-                    <div class="flex justify-between text-center">
-                        <div class="flex-1">
-                            <div class="text-lg font-bold text-slate-900" id="stat-posts">0</div>
-                            <div class="text-xs text-slate-400">Posts</div>
-                        </div>
-                        <div class="flex-1 border-l border-slate-100">
-                            <div class="text-lg font-bold text-slate-900" id="stat-following">0</div>
-                            <div class="text-xs text-slate-400">Following</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile Settings -->
-                <div class="space-y-3 mb-8">
-                    <h3 class="font-bold text-slate-900 text-sm">Settings</h3>
-                    
-                    <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100">
-                        <span class="text-sm font-medium">Private Account</span>
-                        <button id="btn-toggle-private" class="w-10 h-6 bg-slate-200 rounded-full relative transition-colors">
-                            <span class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-sm"></span>
-                        </button>
-                    </div>
-
-                    <button id="btn-delete-account" class="w-full bg-red-50 text-red-600 border border-red-100 p-3 rounded-xl text-sm font-bold mt-4">
-                        Delete Account
-                    </button>
-                </div>
-
-                <!-- My Posts Grid -->
-                <h3 class="font-bold text-slate-900 text-sm mb-3">My Posts</h3>
-                <div id="my-posts-container" class="space-y-4 pb-10">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32">
+            <!-- Content gets injected here -->
         </main>
 
-        <!-- Create Post Modal -->
-        <div id="create-modal" class="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm hidden flex flex-col justify-end sm:justify-center items-center transition-all">
-            <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-slide-up">
-                <div class="flex justify-between items-center mb-4">
-                    <button id="close-create" class="text-slate-400 hover:text-slate-600">Cancel</button>
-                    <h3 class="font-bold text-lg">New Post</h3>
-                    <button id="btn-submit-post" class="text-teal-600 font-bold disabled:opacity-50">Post</button>
-                </div>
-                
-                <textarea id="post-content" class="w-full h-24 resize-none outline-none text-lg placeholder:text-slate-300 mb-4" placeholder="What's happening?"></textarea>
-                
-                <div class="border-t border-slate-100 pt-4">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Photo</label>
-                    <label for="post-image-file" class="flex flex-col items-center justify-center w-full h-24 bg-slate-50 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 transition-colors" id="file-drop-zone">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400">
-                            <i data-lucide="image-plus" width="24" class="mb-2"></i>
-                            <p class="text-xs">Tap to upload</p>
-                        </div>
-                        <input id="post-image-file" type="file" accept="image/*" class="hidden" />
-                    </label>
+        <!-- Navigation Dock -->
+        <div id="nav-dock-container" class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
+            <!-- Compact Trigger -->
+            <button id="dock-trigger" class="pointer-events-auto bg-slate-900 shadow-2xl w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform active:scale-90">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
 
-                    <div id="image-preview-container" class="hidden relative mt-2 w-full h-32 bg-slate-100 rounded-xl overflow-hidden">
-                        <img id="image-preview" src="" class="w-full h-full object-cover">
-                        <button id="remove-image" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full backdrop-blur-sm">
-                            <i data-lucide="x" width="16"></i>
-                        </button>
-                    </div>
-                    <div id="upload-status" class="hidden mt-2 text-xs text-teal-600 font-medium text-center animate-pulse">Uploading image...</div>
-                </div>
+            <!-- Expanded Dock -->
+            <div id="dock-expanded" class="hidden pointer-events-auto nav-dock text-slate-400 shadow-2xl rounded-2xl p-1.5 flex items-center gap-1 border border-slate-800/50 animate-in zoom-in-95 duration-200">
+                <button onclick="navigateTo('home')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="home"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
+                <button onclick="navigateTo('explore')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="explore"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+                <button onclick="showCreateModal()" class="w-12 h-12 bg-teal-500 hover:bg-teal-400 text-white rounded-xl flex items-center justify-center mx-2 shadow-lg shadow-teal-500/30 active:scale-95 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
+                <button onclick="navigateTo('saved')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="saved"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></button>
+                <button onclick="navigateTo('profile')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="profile"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+                <div class="w-[1px] h-8 bg-slate-700 mx-1"></div>
+                <button id="dock-collapse" class="w-10 h-12 flex items-center justify-center text-slate-500 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             </div>
         </div>
-
-        <!-- Comments Modal -->
-        <div id="comments-modal" class="fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm hidden flex flex-col justify-end transition-all">
-            <div class="bg-white w-full h-[80vh] rounded-t-3xl shadow-2xl animate-slide-up flex flex-col">
-                <div class="flex justify-between items-center p-4 border-b border-gray-100">
-                    <h3 class="font-bold text-lg">Comments</h3>
-                    <button id="close-comments" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x" width="16"></i></button>
-                </div>
-                
-                <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4">
-                    <!-- Comments injected here -->
-                </div>
-
-                <div class="p-4 border-t border-gray-100 bg-white pb-safe">
-                    <div class="flex gap-2">
-                        <input type="text" id="comment-input" placeholder="Add a comment..." class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                        <button id="btn-submit-comment" class="bg-teal-600 text-white p-3 rounded-full font-bold shadow-md active:scale-95 disabled:opacity-50">
-                            <i data-lucide="send" width="18"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Floating Nav -->
-        <div class="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none pb-safe">
-            <div id="nav-dock" class="bg-slate-900 shadow-2xl transition-all-300 pointer-events-auto flex items-center overflow-hidden w-14 h-14 rounded-full justify-center cursor-pointer">
-                <div id="nav-menu-icon" class="text-white"><i data-lucide="menu" width="24"></i></div>
-                <div id="nav-items" class="hidden w-full h-full flex items-center justify-between px-2">
-                    <button onclick="switchTab('home')" class="nav-btn flex-1 flex justify-center text-teal-400" data-target="home"><i data-lucide="home" width="20"></i></button>
-                    <button onclick="switchTab('search')" class="nav-btn flex-1 flex justify-center text-slate-400" data-target="search"><i data-lucide="search" width="20"></i></button>
-                    <button id="btn-create" class="flex-1 flex justify-center text-white">
-                        <div class="bg-teal-500 w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/20"><i data-lucide="plus" width="22"></i></div>
-                    </button>
-                    <button onclick="switchTab('saved')" class="nav-btn flex-1 flex justify-center text-slate-400" data-target="saved"><i data-lucide="bookmark" width="20"></i></button>
-                    <button onclick="switchTab('profile')" class="nav-btn flex-1 flex justify-center text-slate-400" data-target="profile"><i data-lucide="user" width="20"></i></button>
-                    <button id="close-nav" class="w-8 flex justify-center text-slate-500"><i data-lucide="x" width="18"></i></button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- ================= JAVASCRIPT LOGIC ================= -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove, setDoc, getDoc, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    <!-- Modals Layer -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <!-- Modal Content Container -->
+        <div id="modal-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-slide-up"></div>
+    </div>
 
-        // --- Firebase Config ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuc1G9CwL3uLdEXcQ1Osu1VAqax5QVlnA",
+    <!-- Confirm Dialog Template (Custom UI for delete) -->
+    <div id="confirm-dialog" class="hidden fixed inset-0 z-[70] bg-slate-900/40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl">
+            <h3 id="confirm-title" class="text-lg font-bold text-slate-900 mb-2">Are you sure?</h3>
+            <p id="confirm-message" class="text-sm text-slate-500 mb-6">This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel" class="flex-1 py-3 font-bold text-slate-500 bg-slate-100 rounded-xl">Cancel</button>
+                <button id="confirm-yes" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-[100] bg-slate-50 flex flex-col items-center justify-center text-teal-600">
+        <svg class="animate-spin w-10 h-10 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <p class="font-semibold text-slate-400">Syncing Scrubs...</p>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove, getDocs, where, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State
+        let state = {
+            user: null,
+            userData: null,
+            activeTab: 'home',
+            posts: [],
+            savedIds: [],
+            notifications: [],
+            targetProfileId: null,
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'default-scrubsocial'
+        };
+
+        // Firebase Setup
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "", // Filled at runtime
             authDomain: "scrubsocial-de5cf.firebaseapp.com",
             projectId: "scrubsocial-de5cf",
             storageBucket: "scrubsocial-de5cf.firebasestorage.app",
@@ -339,439 +185,553 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
-        const googleProvider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        let currentUserData = null;
-        let selectedFile = null;
-        let activePostIdForComments = null;
+        // Core Functions
+        const init = async () => {
+            // Wait for auth
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
+            } else {
+                await signInAnonymously(auth).catch(e => console.error("Auth failed", e));
+            }
 
-        // --- Auth & Init ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if(userDoc.exists()) {
-                    currentUserData = userDoc.data();
-                    if(!currentUserData.following) currentUserData.following = [];
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    state.user = user;
+                    setupListeners();
                 } else {
-                    currentUserData = { role: 'RN', displayName: user.displayName || 'Nurse', email: user.email, photoURL: user.photoURL, following: [], isPrivate: false };
-                    await setDoc(doc(db, "users", user.uid), currentUserData);
+                    state.user = null;
+                    showAuth();
                 }
-                showApp();
-                initFeed();
-                initNotifications();
-                updateProfileUI();
-            } else {
-                currentUser = null;
-                currentUserData = null;
-                showAuth();
-            }
-        });
-
-        // Basic Auth Listeners
-        document.getElementById('btn-signup').addEventListener('click', async () => { /* Signup Logic Same */ 
-             const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; const name = document.getElementById('signup-name').value; const role = document.getElementById('signup-role').value;
-             if(!email || !password || !name) return showError('Please fill all fields');
-             try { const cred = await createUserWithEmailAndPassword(auth, email, password); await updateProfile(cred.user, { displayName: name }); await setDoc(doc(db, "users", cred.user.uid), { role, displayName: name, email, photoURL: null, following: [], isPrivate: false }); } catch (error) { showError(error.message); }
-        });
-        document.getElementById('btn-login').addEventListener('click', async () => { 
-             const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
-             try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { showError('Invalid credentials'); }
-        });
-        document.getElementById('btn-google').addEventListener('click', async () => { try { await signInWithPopup(auth, googleProvider); } catch(e) { showError(e.message); } });
-        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-        document.getElementById('switch-to-signup').addEventListener('click', () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); });
-        document.getElementById('switch-to-login').addEventListener('click', () => { document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); });
-
-        function showAuth() { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
-        function showApp() { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); }
-        function showError(msg) { const el = document.getElementById('auth-error'); el.innerText = msg; el.classList.remove('hidden'); }
-
-        // --- Profile UI & Settings ---
-        function updateProfileUI() {
-            if(!currentUser || !currentUserData) return;
-            document.getElementById('profile-name').innerText = currentUserData.displayName;
-            document.getElementById('profile-role').innerText = currentUserData.role;
-            document.getElementById('stat-following').innerText = currentUserData.following ? currentUserData.following.length : 0;
-            
-            // Avatar
-            const avatarEl = document.getElementById('profile-avatar');
-            const url = currentUserData.photoURL || currentUser.photoURL;
-            if(url) avatarEl.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
-            else avatarEl.innerText = (currentUserData.displayName || "U")[0];
-
-            // Private/Public Toggle UI
-            const toggleBtn = document.getElementById('btn-toggle-private');
-            const visibilityLabel = document.getElementById('profile-visibility');
-            if(currentUserData.isPrivate) {
-                toggleBtn.classList.remove('bg-slate-200'); toggleBtn.classList.add('bg-teal-500');
-                toggleBtn.children[0].style.transform = 'translateX(16px)';
-                visibilityLabel.innerText = "Private"; visibilityLabel.classList.replace('bg-slate-200', 'bg-amber-100');
-            } else {
-                toggleBtn.classList.remove('bg-teal-500'); toggleBtn.classList.add('bg-slate-200');
-                toggleBtn.children[0].style.transform = 'translateX(0px)';
-                visibilityLabel.innerText = "Public"; visibilityLabel.classList.replace('bg-amber-100', 'bg-slate-200');
-            }
-
-            loadMyPosts();
-        }
-
-        // Toggle Private Logic
-        document.getElementById('btn-toggle-private').addEventListener('click', async () => {
-            const newState = !currentUserData.isPrivate;
-            await updateDoc(doc(db, "users", currentUser.uid), { isPrivate: newState });
-            currentUserData.isPrivate = newState;
-            updateProfileUI();
-        });
-
-        // Delete Account Logic
-        document.getElementById('btn-delete-account').addEventListener('click', async () => {
-            if(!confirm("Are you sure? This cannot be undone.")) return;
-            try {
-                // Delete user doc
-                await deleteDoc(doc(db, "users", currentUser.uid));
-                // Delete Auth User (requires recent login)
-                await deleteUser(currentUser);
-                window.location.reload();
-            } catch(e) {
-                alert("Please log out and log in again to delete your account for security reasons.");
-            }
-        });
-
-        // Load My Posts for Profile
-        async function loadMyPosts() {
-            const container = document.getElementById('my-posts-container');
-            container.innerHTML = '<div class="loader mx-auto"></div>';
-            // FIX: Removed orderBy from query to prevent indexing error. Filtering in memory.
-            const q = query(collection(db, "posts"), where("authorId", "==", currentUser.uid));
-            const snapshot = await getDocs(q);
-            container.innerHTML = '';
-            
-            // Convert to array and sort manually in memory
-            const posts = [];
-            snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
-            posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-            document.getElementById('stat-posts').innerText = posts.length;
-
-            if(posts.length === 0) { container.innerHTML = '<p class="text-center text-sm text-slate-400">No posts yet.</p>'; return; }
-
-            posts.forEach(post => {
-                const el = document.createElement('div');
-                el.className = "bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center";
-                el.innerHTML = `
-                    <div class="text-sm truncate w-3/4 font-medium text-slate-700">${post.content || 'Image Post'}</div>
-                    <button class="text-red-400 p-2 hover:bg-red-50 rounded-full btn-delete-post" data-id="${post.id}"><i data-lucide="trash-2" width="16"></i></button>
-                `;
-                el.querySelector('.btn-delete-post').addEventListener('click', (e) => deletePost(e.currentTarget.dataset.id));
-                container.appendChild(el);
-            });
-            lucide.createIcons();
-        }
-
-        async function deletePost(postId) {
-            if(!confirm("Delete this post?")) return;
-            await deleteDoc(doc(db, "posts", postId));
-            loadMyPosts(); // Refresh list
-        }
-
-        // --- Avatar Upload ---
-        document.getElementById('profile-avatar').addEventListener('click', () => document.getElementById('profile-file-input').click());
-        document.getElementById('profile-file-input').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            try {
-                const storageRef = ref(storage, `avatars/${currentUser.uid}_${Date.now()}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(snapshot.ref);
-                await updateProfile(currentUser, { photoURL: url });
-                await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
-                currentUserData.photoURL = url; updateProfileUI();
-            } catch(e) { alert("Upload failed"); }
-        });
-
-        // --- Feed & Posts ---
-        function initFeed() {
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const container = document.getElementById('feed-container');
-                container.innerHTML = '';
-                snapshot.forEach((doc) => container.appendChild(createPostElement(doc.id, doc.data())));
-                lucide.createIcons();
-            });
-        }
-
-        function createPostElement(id, post) {
-            const isLiked = post.likes && post.likes.includes(currentUser.uid);
-            const likeCount = post.likes ? post.likes.length : 0;
-            const isMyPost = post.authorId === currentUser.uid;
-            
-            // Format time
-            const date = post.createdAt ? post.createdAt.toDate() : new Date();
-            const timeDiff = Math.round((new Date() - date) / 1000 / 60);
-            const timeStr = timeDiff > 60 ? Math.round(timeDiff/60) + 'h ago' : timeDiff + 'm ago';
-
-            const div = document.createElement('div');
-            div.className = "mb-4 bg-white border-b border-gray-100 pb-4 animate-fade-in";
-            div.innerHTML = `
-                <div class="px-4 py-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        ${post.authorPhoto ? `<img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-gray-100">` : `<div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold">${post.authorName[0]}</div>`}
-                        <div><h3 class="text-sm font-bold text-slate-900">${post.authorName}</h3><p class="text-xs text-slate-400">${timeStr}</p></div>
-                    </div>
-                    ${isMyPost ? `<button class="text-slate-300 hover:text-red-500 btn-delete-feed" data-id="${id}"><i data-lucide="trash-2" width="16"></i></button>` : ''}
-                </div>
-                ${post.image ? `<div class="relative w-full bg-gray-100 mb-3"><img src="${post.image}" class="w-full h-auto object-cover max-h-[500px]" loading="lazy"></div>` : `<div class="mx-4 rounded-2xl p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-sm min-h-[160px] flex items-center justify-center text-center mb-3"><p class="text-lg font-medium leading-relaxed">${post.content}</p></div>`}
-                ${post.image && post.content ? `<div class="px-4 mb-3"><p class="text-sm text-slate-800"><span class="font-bold mr-2">${post.authorName}</span>${post.content}</p></div>` : ''}
-                <div class="px-4 flex items-center gap-6">
-                    <button class="flex items-center gap-2 group active:scale-95 transition-transform btn-like" data-id="${id}" data-author="${post.authorId}">
-                        <i data-lucide="heart" class="w-6 h-6 ${isLiked ? 'text-red-500 fill-red-500' : 'text-slate-800'} transition-colors"></i>
-                        <span class="text-sm font-bold text-slate-800">${likeCount}</span>
-                    </button>
-                    <button class="flex items-center gap-2 group active:scale-95 transition-transform btn-comment" data-id="${id}" data-author="${post.authorId}">
-                        <i data-lucide="message-circle" class="w-6 h-6 text-slate-800"></i>
-                        <span class="text-sm font-bold text-slate-800">${post.commentCount || 0}</span>
-                    </button>
-                    <div class="flex-1"></div>
-                    <button class="text-slate-800 active:scale-90 transition-transform btn-share" data-content="${post.content}"><i data-lucide="share-2" class="w-6 h-6"></i></button>
-                </div>
-            `;
-
-            // Handlers
-            div.querySelector('.btn-like').addEventListener('click', (e) => toggleLike(id, post.authorId, isLiked));
-            div.querySelector('.btn-comment').addEventListener('click', () => openComments(id, post.authorId));
-            div.querySelector('.btn-share').addEventListener('click', () => sharePost(post.content || "Check out this post on Scrubs!"));
-            if(isMyPost) div.querySelector('.btn-delete-feed').addEventListener('click', () => deletePost(id));
-            
-            return div;
-        }
-
-        async function toggleLike(postId, authorId, isLiked) {
-            const postRef = doc(db, "posts", postId);
-            if(isLiked) {
-                await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-            } else {
-                await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-                if(authorId !== currentUser.uid) sendNotification(authorId, "liked your post");
-            }
-        }
-
-        // --- Comments Logic ---
-        const commentsModal = document.getElementById('comments-modal');
-        const commentsList = document.getElementById('comments-list');
-        let currentPostAuthorId = null;
-
-        function openComments(postId, authorId) {
-            activePostIdForComments = postId;
-            currentPostAuthorId = authorId;
-            commentsModal.classList.remove('hidden');
-            commentsList.innerHTML = '<div class="loader mx-auto"></div>';
-            
-            const q = query(collection(db, `posts/${postId}/comments`), orderBy("createdAt", "asc"));
-            onSnapshot(q, (snapshot) => {
-                commentsList.innerHTML = '';
-                if(snapshot.empty) commentsList.innerHTML = '<p class="text-center text-slate-400 text-sm">No comments yet.</p>';
-                snapshot.forEach(doc => {
-                    const c = doc.data();
-                    const el = document.createElement('div');
-                    el.className = "flex gap-3 text-sm";
-                    el.innerHTML = `
-                        <div class="font-bold text-slate-900 shrink-0">${c.authorName}</div>
-                        <div class="text-slate-600">${c.text}</div>
-                    `;
-                    commentsList.appendChild(el);
-                });
-            });
-        }
-
-        document.getElementById('close-comments').addEventListener('click', () => commentsModal.classList.add('hidden'));
-        document.getElementById('btn-submit-comment').addEventListener('click', async () => {
-            const input = document.getElementById('comment-input');
-            const text = input.value;
-            if(!text || !activePostIdForComments) return;
-            
-            input.value = '';
-            await addDoc(collection(db, `posts/${activePostIdForComments}/comments`), {
-                text, authorName: currentUserData.displayName, authorId: currentUser.uid, createdAt: serverTimestamp()
-            });
-            // Update Comment Count on Post
-            const postRef = doc(db, "posts", activePostIdForComments);
-            // Ideally use transactions for counters, simplified here:
-            const postSnap = await getDoc(postRef);
-            await updateDoc(postRef, { commentCount: (postSnap.data().commentCount || 0) + 1 });
-            
-            if(currentPostAuthorId !== currentUser.uid) sendNotification(currentPostAuthorId, "commented on your post");
-        });
-
-        // --- Notifications ---
-        async function sendNotification(targetUserId, message) {
-            await addDoc(collection(db, "notifications"), {
-                targetUserId, message, fromUser: currentUserData.displayName, createdAt: serverTimestamp(), read: false
-            });
-        }
-
-        function initNotifications() {
-            // FIX: Removed orderBy from query. Filter only by user, then sort in memory.
-            const q = query(collection(db, "notifications"), where("targetUserId", "==", currentUser.uid));
-            onSnapshot(q, (snapshot) => {
-                const list = document.getElementById('notifications-list');
-                const badge = document.getElementById('notif-badge');
-                list.innerHTML = '';
-                
-                const notifications = [];
-                snapshot.forEach(doc => notifications.push({ id: doc.id, ...doc.data(), ref: doc.ref }));
-                notifications.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-                let unreadCount = 0;
-                
-                if(notifications.length === 0) {
-                    list.innerHTML = '<p class="text-center text-slate-400 mt-10">No notifications.</p>';
-                } else {
-                    notifications.forEach(n => {
-                        if(!n.read) unreadCount++;
-                        const el = document.createElement('div');
-                        el.className = `p-4 rounded-xl border border-slate-100 flex items-center gap-3 ${n.read ? 'bg-white' : 'bg-blue-50'}`;
-                        el.innerHTML = `
-                            <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 font-bold text-xs">${n.fromUser[0]}</div>
-                            <div class="text-sm"><span class="font-bold">${n.fromUser}</span> ${n.message}</div>
-                        `;
-                        list.appendChild(el);
-                        // Mark as read immediately on render for this demo
-                        if(!n.read) updateDoc(n.ref, { read: true }); 
-                    });
-                }
-                
-                if(unreadCount > 0) badge.classList.remove('hidden');
-                else badge.classList.add('hidden');
-            });
-        }
-
-        // --- Share API ---
-        async function sharePost(text) {
-            if (navigator.share) {
-                try { await navigator.share({ title: 'Scrubs Social', text: text, url: window.location.href }); } 
-                catch (err) { console.log('Share canceled'); }
-            } else {
-                navigator.clipboard.writeText(text);
-                alert("Post text copied to clipboard!");
-            }
-        }
-
-        // --- Create Post (Same logic as before, ensuring it runs) ---
-        const createModal = document.getElementById('create-modal');
-        const postFileIn = document.getElementById('post-image-file');
-        const imgPreview = document.getElementById('image-preview');
-        const prevCont = document.getElementById('image-preview-container');
-        const dropZ = document.getElementById('file-drop-zone');
-        
-        document.getElementById('btn-create').addEventListener('click', () => createModal.classList.remove('hidden'));
-        document.getElementById('close-create').addEventListener('click', () => createModal.classList.add('hidden'));
-        postFileIn.addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(file) { selectedFile = file; imgPreview.src = URL.createObjectURL(file); prevCont.classList.remove('hidden'); dropZ.classList.add('hidden'); }
-        });
-        document.getElementById('remove-image').addEventListener('click', () => { selectedFile = null; postFileIn.value = ''; prevCont.classList.add('hidden'); dropZ.classList.remove('hidden'); });
-
-        document.getElementById('btn-submit-post').addEventListener('click', async () => {
-            const content = document.getElementById('post-content').value;
-            const btn = document.getElementById('btn-submit-post');
-            const status = document.getElementById('upload-status');
-            if(!content && !selectedFile) return;
-            btn.disabled = true; btn.innerText = "Posting...";
-            try {
-                let imgUrl = null;
-                if(selectedFile) {
-                    status.classList.remove('hidden');
-                    const refS = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
-                    const snap = await uploadBytes(refS, selectedFile);
-                    imgUrl = await getDownloadURL(snap.ref);
-                }
-                await addDoc(collection(db, "posts"), {
-                    authorName: currentUserData.displayName, authorId: currentUser.uid, authorPhoto: currentUserData.photoURL, authorRole: currentUserData.role,
-                    content, image: imgUrl, likes: [], commentCount: 0, createdAt: serverTimestamp()
-                });
-                createModal.classList.add('hidden'); document.getElementById('post-content').value = ''; selectedFile = null; prevCont.classList.add('hidden'); dropZ.classList.remove('hidden'); status.classList.add('hidden');
-            } catch(e) { console.log(e); alert("Post failed"); }
-            btn.disabled = false; btn.innerText = "Post";
-        });
-
-        // --- Navigation Logic ---
-        const navDock = document.getElementById('nav-dock');
-        const navItems = document.getElementById('nav-items');
-        const navMenuIcon = document.getElementById('nav-menu-icon');
-        let isNavExpanded = false;
-
-        function toggleNav() {
-            isNavExpanded = !isNavExpanded;
-            if (isNavExpanded) {
-                navDock.classList.remove('w-14', 'h-14', 'rounded-full'); navDock.classList.add('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2');
-                navMenuIcon.classList.add('hidden'); setTimeout(() => navItems.classList.remove('hidden'), 100);
-            } else {
-                navItems.classList.add('hidden'); navDock.classList.remove('w-[85%]', 'h-16', 'rounded-[2rem]', 'px-2'); navDock.classList.add('w-14', 'h-14', 'rounded-full');
-                setTimeout(() => navMenuIcon.classList.remove('hidden'), 100);
-            }
-        }
-        navDock.addEventListener('click', (e) => { if (!isNavExpanded && e.target.closest('#nav-dock')) toggleNav(); });
-        document.getElementById('close-nav').addEventListener('click', (e) => { e.stopPropagation(); toggleNav(); });
-
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('#main-content > div').forEach(el => el.classList.add('hidden'));
-            if(tabId === 'home') document.getElementById('feed-container').classList.remove('hidden');
-            if(tabId === 'search') { document.getElementById('search-view').classList.remove('hidden'); initSearch(); }
-            if(tabId === 'saved') document.getElementById('saved-view').classList.remove('hidden');
-            if(tabId === 'profile') { document.getElementById('profile-view').classList.remove('hidden'); updateProfileUI(); }
-            if(tabId === 'notifications') document.getElementById('notifications-view').classList.remove('hidden');
-
-            if(isNavExpanded) toggleNav();
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                if(btn.dataset.target === tabId) { btn.classList.add('text-teal-400'); btn.classList.remove('text-slate-400'); }
-                else { btn.classList.remove('text-teal-400'); btn.classList.add('text-slate-400'); }
+                hideLoading();
             });
         };
 
-        // Reuse Search Logic (Same as before)
-        async function initSearch() {
-            const list = document.getElementById('users-list'); list.innerHTML = '<div class="loader mx-auto"></div>';
-            try {
-                const snap = await getDocs(collection(db, "users"));
-                list.innerHTML = '';
-                const myFollow = currentUserData.following || [];
-                snap.forEach(doc => {
-                    if(doc.id === currentUser.uid) return;
-                    const u = doc.data();
-                    const el = document.createElement('div');
-                    el.className = "flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100";
-                    const isFollowing = myFollow.includes(doc.id);
-                    el.innerHTML = `
-                        <div class="flex gap-3 items-center">
-                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden font-bold text-slate-500">${u.photoURL ? `<img src="${u.photoURL}" class="w-full h-full object-cover">` : u.displayName[0]}</div>
-                            <div><div class="font-bold text-sm">${u.displayName}</div><div class="text-xs text-slate-500">${u.role}</div></div>
-                        </div>
-                        <button class="px-4 py-1.5 rounded-full text-xs font-bold btn-follow ${isFollowing ? 'bg-slate-100 text-slate-500' : 'bg-teal-600 text-white shadow-md'}" data-id="${doc.id}">${isFollowing ? 'Following' : 'Follow'}</button>
-                    `;
-                    el.querySelector('.btn-follow').addEventListener('click', (e) => toggleFollow(doc.id, e.target));
-                    list.appendChild(el);
-                });
-            } catch(e) { list.innerHTML = 'Error'; }
-        }
+        const setupListeners = () => {
+            if (!state.user) return;
 
-        async function toggleFollow(tid, btn) {
-            const ref = doc(db, "users", currentUser.uid);
-            const isF = currentUserData.following.includes(tid);
-            if(isF) {
-                currentUserData.following = currentUserData.following.filter(id => id !== tid);
-                btn.innerText = "Follow"; btn.className = "px-4 py-1.5 rounded-full text-xs font-bold btn-follow bg-teal-600 text-white shadow-md";
-                await updateDoc(ref, { following: arrayRemove(tid) });
-            } else {
-                currentUserData.following.push(tid);
-                btn.innerText = "Following"; btn.className = "px-4 py-1.5 rounded-full text-xs font-bold btn-follow bg-slate-100 text-slate-500";
-                await updateDoc(ref, { following: arrayUnion(tid) });
+            // Public Posts Listener
+            const postsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts');
+            const postsQuery = query(postsRef); // Simple query as per Rule 2
+            onSnapshot(postsQuery, (snap) => {
+                state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                render();
+            }, (err) => console.error("Posts error", err));
+
+            // User Data Listener
+            const userRef = doc(db, 'artifacts', state.appId, 'users', state.user.uid, 'profile', 'data');
+            onSnapshot(userRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    state.userData = docSnap.data();
+                    state.savedIds = state.userData.savedPosts || [];
+                } else {
+                    // Initialize if first time
+                    const initialData = {
+                        displayName: state.user.displayName || "Professional",
+                        role: "RN",
+                        savedPosts: [],
+                        following: [],
+                        createdAt: serverTimestamp()
+                    };
+                    setDoc(userRef, initialData);
+                    state.userData = initialData;
+                }
+                render();
+            }, (err) => console.error("User data error", err));
+
+            // Notifications
+            const notifRef = collection(db, 'artifacts', state.appId, 'users', state.user.uid, 'notifications');
+            onSnapshot(notifRef, (snap) => {
+                state.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                updateNotifBadge();
+                if (state.activeTab === 'notifications') render();
+            });
+
+            showApp();
+        };
+
+        // --- UI Rendering ---
+
+        const render = () => {
+            const container = document.getElementById('main-content');
+            
+            // Highlight active tab in dock
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === state.activeTab) {
+                    btn.classList.add('text-white', 'bg-slate-800');
+                    btn.classList.remove('text-slate-400');
+                } else {
+                    btn.classList.remove('text-white', 'bg-slate-800');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+
+            switch(state.activeTab) {
+                case 'home': renderFeed(container, state.posts); break;
+                case 'explore': renderExplore(container); break;
+                case 'saved': renderFeed(container, state.posts.filter(p => state.savedIds.includes(p.id)), "Saved Posts"); break;
+                case 'notifications': renderNotifications(container); break;
+                case 'profile': renderProfile(container, state.targetProfileId || state.user.uid); break;
             }
-            updateProfileUI();
-        }
+        };
 
-        // Init
-        lucide.createIcons();
+        const renderFeed = (container, posts, title = null) => {
+            let html = `<div class="max-w-xl mx-auto pt-6 px-4 space-y-6">`;
+            if (title) html += `<h2 class="text-2xl font-bold text-slate-800 px-2">${title}</h2>`;
+            
+            if (posts.length === 0) {
+                html += `<div class="text-center py-20 text-slate-400">No posts found.</div>`;
+            } else {
+                posts.forEach(post => {
+                    html += `
+                        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 relative">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold cursor-pointer" onclick="viewProfile('${post.authorId}')">
+                                    ${post.authorName?.charAt(0) || 'U'}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div onclick="viewProfile('${post.authorId}')" class="cursor-pointer">
+                                            <h3 class="font-bold text-slate-900 text-sm leading-none">${post.authorName}</h3>
+                                            <p class="text-xs text-teal-600 font-medium mt-1">${post.authorRole || 'Healthcare Pro'}</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-slate-400">${formatTime(post.createdAt)}</span>
+                                            ${post.authorId === state.user.uid ? `
+                                                <button onclick="confirmDeletePost('${post.id}')" class="p-1 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded-full transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-slate-700 text-sm mb-3 leading-relaxed whitespace-pre-wrap">${post.content}</p>
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-50">
+                                <div class="flex gap-4">
+                                    <button onclick="toggleLike('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold ${post.likes?.includes(state.user.uid) ? 'text-red-500' : 'text-slate-500'}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${post.likes?.includes(state.user.uid) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                        <span>${post.likes?.length || 0}</span>
+                                    </button>
+                                    <button onclick="toggleComments('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                                        <span>${post.commentCount || 0}</span>
+                                    </button>
+                                </div>
+                                <button onclick="toggleSave('${post.id}')" class="${state.savedIds.includes(post.id) ? 'text-teal-600' : 'text-slate-400'}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${state.savedIds.includes(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                                </button>
+                            </div>
+                            <div id="comments-${post.id}" class="hidden mt-4 pt-3 border-t border-slate-100"></div>
+                        </div>
+                    `;
+                });
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        };
+
+        const renderProfile = async (container, uid) => {
+            const isMe = uid === state.user.uid;
+            let profileData = state.userData;
+            
+            if (!isMe) {
+                const snap = await getDoc(doc(db, 'artifacts', state.appId, 'users', uid, 'profile', 'data'));
+                profileData = snap.exists() ? snap.data() : { displayName: "User", role: "Healthcare Pro" };
+            }
+
+            const myPosts = state.posts.filter(p => p.authorId === uid);
+
+            container.innerHTML = `
+                <div class="pb-20">
+                    <div class="bg-white pb-6 rounded-b-[2.5rem] shadow-sm border-b border-slate-100 px-6 pt-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-24 h-24 rounded-full bg-teal-500 flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                                ${profileData.displayName?.charAt(0)}
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900 mt-4">${profileData.displayName}</h2>
+                            <span class="text-xs font-bold bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md uppercase tracking-wide mt-1">${profileData.role}</span>
+                            
+                            <div class="flex gap-8 mt-6 w-full max-w-xs justify-center">
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-slate-900">${myPosts.length}</div>
+                                    <div class="text-xs text-slate-400 font-medium uppercase">Posts</div>
+                                </div>
+                                <div class="text-center border-l border-r border-slate-100 px-8">
+                                    <div class="text-lg font-bold text-slate-900">${profileData.followers?.length || 0}</div>
+                                    <div class="text-xs text-slate-400 font-medium uppercase">Followers</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-slate-900">${profileData.following?.length || 0}</div>
+                                    <div class="text-xs text-slate-400 font-medium uppercase">Following</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 w-full max-w-xs">
+                                ${isMe ? `
+                                    <button onclick="handleLogout()" class="w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl flex items-center justify-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                                        Log Out
+                                    </button>
+                                ` : `
+                                    <button class="w-full py-3 bg-teal-600 text-white font-bold rounded-xl">Follow</button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 mt-6">
+                        <h3 class="font-bold text-slate-800 mb-4 px-2">Shifts</h3>
+                        <div id="profile-posts"></div>
+                    </div>
+                </div>
+            `;
+            
+            renderFeed(document.getElementById('profile-posts'), myPosts);
+        };
+
+        const renderNotifications = (container) => {
+            let html = `<div class="p-4"><h2 class="text-2xl font-bold text-slate-800 mb-6 px-2">Notifications</h2><div class="space-y-2">`;
+            if (state.notifications.length === 0) {
+                html += `<div class="text-center p-10 text-slate-400 bg-white rounded-3xl border border-slate-100">All caught up!</div>`;
+            } else {
+                state.notifications.forEach(n => {
+                    html += `
+                        <div class="p-4 rounded-2xl border flex items-center gap-3 ${n.read ? 'bg-white border-slate-100' : 'bg-teal-50/50 border-teal-100'}">
+                            <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-slate-700">${n.message}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            html += `</div></div>`;
+            container.innerHTML = html;
+        };
+
+        const renderExplore = (container) => {
+            container.innerHTML = `
+                <div class="p-4">
+                    <div class="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-3xl p-6 text-white shadow-lg mb-6">
+                        <h2 class="text-2xl font-bold mb-2">Find Your Team</h2>
+                        <p class="text-teal-50 opacity-90 text-sm mb-4">Connect with colleagues across the system.</p>
+                        <input type="text" placeholder="Search by name or unit..." class="w-full bg-white/20 border border-white/30 rounded-xl py-2.5 px-4 placeholder:text-teal-50 text-white outline-none">
+                    </div>
+                    <div class="text-center py-10 text-slate-400">Search functionality coming soon.</div>
+                </div>
+            `;
+        };
+
+        // --- Post Actions ---
+
+        window.toggleComments = async (postId) => {
+            const div = document.getElementById(`comments-${postId}`);
+            if (!div.classList.contains('hidden')) {
+                div.classList.add('hidden');
+                return;
+            }
+            div.classList.remove('hidden');
+            div.innerHTML = `<div class="flex justify-center py-2"><svg class="animate-spin h-5 w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>`;
+
+            const commentsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments');
+            onSnapshot(query(commentsRef), (snap) => {
+                const comments = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+                
+                let html = `<div class="space-y-3 mb-4 max-h-60 overflow-y-auto no-scrollbar">`;
+                comments.forEach(c => {
+                    html += `
+                        <div class="text-sm bg-slate-50 p-2.5 rounded-xl group relative">
+                            <span class="font-bold text-slate-800 mr-2">${c.authorName}</span>
+                            <span class="text-slate-600">${c.text}</span>
+                            ${c.authorId === state.user.uid ? `
+                                <button onclick="confirmDeleteComment('${postId}', '${c.id}')" class="absolute right-2 top-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                html += `</div>
+                    <div class="flex gap-2">
+                        <input type="text" id="input-${postId}" placeholder="Add a comment..." class="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-teal-500">
+                        <button onclick="postComment('${postId}')" class="text-teal-600 font-bold text-sm">Post</button>
+                    </div>
+                `;
+                div.innerHTML = html;
+            });
+        };
+
+        window.postComment = async (postId) => {
+            const input = document.getElementById(`input-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            const commentsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments');
+            await addDoc(commentsRef, {
+                text,
+                authorId: state.user.uid,
+                authorName: state.userData.displayName,
+                createdAt: serverTimestamp()
+            });
+
+            // Update count
+            const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
+            const snap = await getDoc(postRef);
+            if (snap.exists()) {
+                await updateDoc(postRef, { commentCount: (snap.data().commentCount || 0) + 1 });
+            }
+        };
+
+        window.toggleLike = async (postId) => {
+            const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
+            const postSnap = await getDoc(postRef);
+            if (!postSnap.exists()) return;
+
+            const post = postSnap.data();
+            const isLiked = post.likes?.includes(state.user.uid);
+
+            await updateDoc(postRef, {
+                likes: isLiked ? arrayRemove(state.user.uid) : arrayUnion(state.user.uid)
+            });
+
+            if (!isLiked && post.authorId !== state.user.uid) {
+                const notifRef = collection(db, 'artifacts', state.appId, 'users', post.authorId, 'notifications');
+                await addDoc(notifRef, {
+                    type: 'like',
+                    fromId: state.user.uid,
+                    message: `${state.userData.displayName} liked your shift update.`,
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+        };
+
+        window.toggleSave = async (postId) => {
+            const userRef = doc(db, 'artifacts', state.appId, 'users', state.user.uid, 'profile', 'data');
+            const isSaved = state.savedIds.includes(postId);
+            await updateDoc(userRef, {
+                savedPosts: isSaved ? arrayRemove(postId) : arrayUnion(postId)
+            });
+        };
+
+        // --- DELETE LOGIC (REPAIRED) ---
+
+        window.confirmDeletePost = (postId) => {
+            const dialog = document.getElementById('confirm-dialog');
+            const yesBtn = document.getElementById('confirm-yes');
+            const cancelBtn = document.getElementById('confirm-cancel');
+            
+            dialog.classList.remove('hidden');
+            
+            const cleanup = () => {
+                dialog.classList.add('hidden');
+                yesBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            cancelBtn.onclick = cleanup;
+            yesBtn.onclick = async () => {
+                try {
+                    const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
+                    await deleteDoc(postRef);
+                } catch (e) {
+                    console.error("Delete failed", e);
+                }
+                cleanup();
+            };
+        };
+
+        window.confirmDeleteComment = (postId, commentId) => {
+            const dialog = document.getElementById('confirm-dialog');
+            const yesBtn = document.getElementById('confirm-yes');
+            const cancelBtn = document.getElementById('confirm-cancel');
+            
+            document.getElementById('confirm-message').innerText = "Delete this comment?";
+            dialog.classList.remove('hidden');
+            
+            const cleanup = () => {
+                dialog.classList.add('hidden');
+                document.getElementById('confirm-message').innerText = "This action cannot be undone.";
+                yesBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            cancelBtn.onclick = cleanup;
+            yesBtn.onclick = async () => {
+                try {
+                    const commentRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments', commentId);
+                    await deleteDoc(commentRef);
+                    
+                    const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
+                    const snap = await getDoc(postRef);
+                    if (snap.exists()) {
+                        const current = snap.data().commentCount || 1;
+                        await updateDoc(postRef, { commentCount: current > 0 ? current - 1 : 0 });
+                    }
+                } catch (e) {
+                    console.error("Comment delete failed", e);
+                }
+                cleanup();
+            };
+        };
+
+        // --- Modals ---
+
+        window.showCreateModal = () => {
+            const overlay = document.getElementById('modal-overlay');
+            const container = document.getElementById('modal-container');
+            overlay.classList.remove('hidden');
+            container.innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="closeModal()" class="text-slate-400 font-medium">Cancel</button>
+                        <h3 class="font-bold text-slate-900">New Shift Log</h3>
+                        <button onclick="submitPost()" id="submit-post-btn" class="text-teal-600 font-bold">Post</button>
+                    </div>
+                    <div class="flex gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold">${state.userData.displayName.charAt(0)}</div>
+                        <div>
+                            <p class="font-bold text-sm text-slate-900">${state.userData.displayName}</p>
+                            <p class="text-xs text-slate-400">Public</p>
+                        </div>
+                    </div>
+                    <textarea id="post-content" class="w-full min-h-[150px] resize-none outline-none text-lg placeholder:text-slate-300 text-slate-700" placeholder="What's happening on your shift?"></textarea>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-teal-600 font-bold gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Add Photo (Demo)</span>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.submitPost = async () => {
+            const content = document.getElementById('post-content').value.trim();
+            if (!content) return;
+
+            document.getElementById('submit-post-btn').innerText = '...';
+            const postsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts');
+            await addDoc(postsRef, {
+                content,
+                authorId: state.user.uid,
+                authorName: state.userData.displayName,
+                authorRole: state.userData.role,
+                createdAt: serverTimestamp(),
+                likes: [],
+                commentCount: 0
+            });
+            closeModal();
+        };
+
+        window.closeModal = () => {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        };
+
+        // --- Navigation ---
+
+        window.navigateTo = (tab) => {
+            state.activeTab = tab;
+            state.targetProfileId = null;
+            render();
+            // Auto collapse dock on selection
+            toggleDock(false);
+        };
+
+        window.viewProfile = (uid) => {
+            state.activeTab = 'profile';
+            state.targetProfileId = uid;
+            render();
+        };
+
+        const toggleDock = (expanded) => {
+            document.getElementById('dock-trigger').classList.toggle('hidden', expanded);
+            document.getElementById('dock-expanded').classList.toggle('hidden', !expanded);
+        };
+
+        // --- Helpers ---
+
+        const formatTime = (ts) => {
+            if (!ts) return 'Just now';
+            const date = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+            const diff = Math.floor((new Date() - date) / 1000);
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff/60)}m`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+            return `${Math.floor(diff/86400)}d`;
+        };
+
+        const updateNotifBadge = () => {
+            const unread = state.notifications.filter(n => !n.read).length;
+            const badge = document.getElementById('notif-badge');
+            if (unread > 0) {
+                badge.innerText = unread > 9 ? '9+' : unread;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        };
+
+        const showAuth = () => {
+            document.getElementById('auth-container').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        };
+
+        const showApp = () => {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+        };
+
+        const hideLoading = () => {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        };
+
+        window.handleLogout = () => signOut(auth);
+
+        // UI Event Listeners
+        document.getElementById('dock-trigger').onclick = () => toggleDock(true);
+        document.getElementById('dock-collapse').onclick = () => toggleDock(false);
+
+        let isLoginMode = true;
+        document.getElementById('auth-toggle-btn').onclick = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back" : "Join Scrubs";
+            document.getElementById('signup-fields').classList.toggle('hidden', isLoginMode);
+            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "New here?" : "Already have an account?";
+            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "Create Account" : "Sign In";
+            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Sign In" : "Create Account";
+        };
+
+        document.getElementById('auth-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            const errorDiv = document.getElementById('auth-error');
+            errorDiv.classList.add('hidden');
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                } else {
+                    const name = document.getElementById('auth-name').value;
+                    const role = document.getElementById('auth-role').value;
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(cred.user, { displayName: name });
+                    // Profile data listener will handle the creation of the user doc
+                }
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.classList.remove('hidden');
+            }
+        };
+
+        // Start App
+        init();
+
     </script>
 </body>
 </html>
