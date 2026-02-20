@@ -2,736 +2,855 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scrubs Social - Healthcare Networking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scrubs Social</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        :root {
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .safe-pt { padding-top: env(safe-area-inset-top, 20px); }
+        
+        /* Smooth transitions */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .glass-header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0d9488;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
         }
-
-        .auth-gradient {
-            background: radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent),
-                        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent);
-        }
-
-        .nav-dock {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="text-slate-900 overflow-x-hidden">
+<body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
 
-    <!-- Auth Container -->
-    <div id="auth-container" class="hidden min-h-screen auth-gradient flex flex-col items-center justify-center p-6">
-        <div class="w-full max-w-sm">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-50 flex flex-col items-center justify-center p-6 hidden">
+        <div class="absolute top-0 right-0 w-[50vh] h-[50vh] bg-teal-200/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-[50vh] h-[50vh] bg-blue-200/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="w-full max-w-sm relative z-10 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-8">
             <div class="flex justify-center mb-8">
-                <div class="w-20 h-20 bg-teal-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-teal-500/30 -rotate-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shirt"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.97V21a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5.43a2 2 0 0 0-1.62-1.97z"/><path d="M12 5v16"/><path d="m16 2-4 3-4-3"/></svg>
+                <div class="w-20 h-20 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-teal-600/30 -rotate-6">
+                    <i data-lucide="shirt" width="40" height="40" class="fill-white/20"></i>
                 </div>
             </div>
-            <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-8">
-                <h2 id="auth-title" class="text-2xl font-bold text-slate-800 text-center mb-2">Welcome Back</h2>
-                <p class="text-slate-500 text-center text-sm mb-8">The social network for healthcare pros.</p>
-                <div id="auth-error" class="hidden bg-red-50 text-red-500 text-xs p-3 rounded-lg mb-4 text-center border border-red-100"></div>
-                
-                <form id="auth-form" class="space-y-4">
-                    <div id="signup-fields" class="hidden space-y-4">
-                        <input type="text" id="auth-name" placeholder="Full Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
-                        <select id="auth-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
-                            <option value="RN">Registered Nurse (RN)</option>
-                            <option value="LPN">LPN / LVN</option>
-                            <option value="NP">Nurse Practitioner</option>
-                            <option value="Student">Nursing Student</option>
+            
+            <h2 id="auth-title" class="text-2xl font-bold text-slate-800 text-center mb-2">Welcome Back</h2>
+            <p class="text-slate-500 text-center text-sm mb-8">The social network for healthcare pros.</p>
+            
+            <div id="auth-error" class="hidden bg-red-50 text-red-500 text-xs p-3 rounded-lg mb-4 text-center border border-red-100"></div>
+
+            <form id="auth-form" class="space-y-4">
+                <div id="signup-fields" class="hidden space-y-4">
+                    <input type="text" id="auth-name" placeholder="Full Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500">
+                    <div class="relative">
+                        <select id="auth-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500 appearance-none">
+                            <option value="RN">RN</option>
+                            <option value="LPN">LPN</option>
+                            <option value="NP">NP</option>
                             <option value="MD/DO">MD / DO</option>
-                            <option value="CNA">CNA / Tech</option>
+                            <option value="Student">Student</option>
+                            <option value="Tech">Tech</option>
                         </select>
                     </div>
-                    <input type="email" id="auth-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
-                    <input type="password" id="auth-pass" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/50 outline-none">
-                    <button type="submit" id="auth-submit-btn" class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-600/20 active:scale-95 transition-all">
-                        Sign In
-                    </button>
-                </form>
-
-                <div class="mt-6 flex items-center justify-between text-sm">
-                    <span id="auth-toggle-text" class="text-slate-400">New here?</span>
-                    <button id="auth-toggle-btn" class="font-bold text-teal-600 hover:underline">Create Account</button>
                 </div>
+                <input type="email" id="auth-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500">
+                <input type="password" id="auth-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500">
+                
+                <button type="submit" id="auth-submit" class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-600/20 active:scale-95 transition-transform">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 flex items-center justify-between text-sm">
+                <span id="auth-switch-text" class="text-slate-400">New here?</span>
+                <button id="auth-switch-btn" class="font-bold text-teal-600 hover:underline">Create Account</button>
             </div>
         </div>
     </div>
 
-    <!-- Main App Container -->
-    <div id="app-container" class="hidden h-screen w-full flex flex-col overflow-hidden">
+    <!-- App Screen -->
+    <div id="app-screen" class="flex flex-col h-full hidden">
         <!-- Header -->
-        <header class="glass-header border-b border-slate-200 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
-                <div class="w-9 h-9 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.97V21a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5.43a2 2 0 0 0-1.62-1.97z"/><path d="M12 5v16"/><path d="m16 2-4 3-4-3"/></svg>
+        <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-4 py-3 safe-pt flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-9 h-9 bg-teal-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                    <i data-lucide="shirt" width="18" class="fill-white/20"></i>
                 </div>
                 <h1 class="text-xl font-bold tracking-tight text-slate-800">Scrubs</h1>
             </div>
-            <button onclick="navigateTo('notifications')" class="relative w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                <span id="notif-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white text-[10px] font-bold text-white flex items-center justify-center px-1">0</span>
+            <button onclick="switchTab('notifications')" class="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 relative transition-colors">
+                <i data-lucide="bell" width="20"></i>
+                <span id="notif-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white px-1">0</span>
             </button>
         </header>
 
         <!-- Main Content -->
-        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32">
-            <!-- Content gets injected here -->
+        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 relative">
+            <div id="view-home" class="view-section max-w-xl mx-auto pt-6 px-4 space-y-6"></div>
+            <div id="view-explore" class="view-section max-w-xl mx-auto pt-6 px-4 space-y-6 hidden"></div>
+            <div id="view-saved" class="view-section max-w-xl mx-auto pt-6 px-4 space-y-6 hidden"></div>
+            <div id="view-notifications" class="view-section max-w-xl mx-auto pt-6 px-4 space-y-2 hidden"></div>
+            <div id="view-profile" class="view-section hidden pb-20"></div>
         </main>
 
-        <!-- Navigation Dock -->
-        <div id="nav-dock-container" class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
-            <!-- Compact Trigger -->
-            <button id="dock-trigger" class="pointer-events-auto bg-slate-900 shadow-2xl w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none px-4 safe-pb">
+            <div id="nav-dock" class="pointer-events-auto bg-slate-900/95 backdrop-blur-xl text-slate-400 shadow-2xl shadow-slate-900/30 rounded-2xl p-1.5 flex items-center gap-1 border border-slate-800/50 transition-all duration-300">
+                <!-- Collapsed State: Just a Menu Button -->
+                <button id="menu-btn" class="w-12 h-12 flex items-center justify-center text-white"><i data-lucide="menu"></i></button>
+                
+                <!-- Expanded State (Hidden by default) -->
+                <div id="nav-items" class="hidden flex items-center gap-1">
+                    <button onclick="switchTab('home')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:bg-slate-800/50" data-tab="home"><i data-lucide="home" width="22"></i></button>
+                    <button onclick="switchTab('explore')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:bg-slate-800/50" data-tab="explore"><i data-lucide="search" width="22"></i></button>
+                    
+                    <button onclick="openCreateModal()" class="w-12 h-12 bg-teal-600 hover:bg-teal-500 text-white rounded-xl flex items-center justify-center mx-2 shadow-lg shadow-teal-500/30 active:scale-95 transition-transform">
+                        <i data-lucide="plus-square" width="22"></i>
+                    </button>
 
-            <!-- Expanded Dock -->
-            <div id="dock-expanded" class="hidden pointer-events-auto nav-dock text-slate-400 shadow-2xl rounded-2xl p-1.5 flex items-center gap-1 border border-slate-800/50 animate-in zoom-in-95 duration-200">
-                <button onclick="navigateTo('home')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="home"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
-                <button onclick="navigateTo('explore')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="explore"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
-                <button onclick="showCreateModal()" class="w-12 h-12 bg-teal-500 hover:bg-teal-400 text-white rounded-xl flex items-center justify-center mx-2 shadow-lg shadow-teal-500/30 active:scale-95 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
-                <button onclick="navigateTo('saved')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="saved"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></button>
-                <button onclick="navigateTo('profile')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:text-white" data-tab="profile"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-                <div class="w-[1px] h-8 bg-slate-700 mx-1"></div>
-                <button id="dock-collapse" class="w-10 h-12 flex items-center justify-center text-slate-500 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    <button onclick="switchTab('saved')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:bg-slate-800/50" data-tab="saved"><i data-lucide="bookmark" width="22"></i></button>
+                    <button onclick="switchTab('profile')" class="nav-btn w-12 h-12 rounded-xl flex items-center justify-center hover:bg-slate-800/50" data-tab="profile"><i data-lucide="user" width="22"></i></button>
+                    
+                    <div class="w-[1px] h-8 bg-slate-700 mx-1"></div>
+                    <button id="close-menu-btn" class="w-10 h-12 flex items-center justify-center text-slate-500 hover:text-white"><i data-lucide="x" width="20"></i></button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals Layer -->
-    <div id="modal-overlay" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <!-- Modal Content Container -->
-        <div id="modal-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-slide-up"></div>
-    </div>
-
-    <!-- Confirm Dialog Template (Custom UI for delete) -->
-    <div id="confirm-dialog" class="hidden fixed inset-0 z-[70] bg-slate-900/40 flex items-center justify-center p-6">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl">
-            <h3 id="confirm-title" class="text-lg font-bold text-slate-900 mb-2">Are you sure?</h3>
-            <p id="confirm-message" class="text-sm text-slate-500 mb-6">This action cannot be undone.</p>
-            <div class="flex gap-3">
-                <button id="confirm-cancel" class="flex-1 py-3 font-bold text-slate-500 bg-slate-100 rounded-xl">Cancel</button>
-                <button id="confirm-yes" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Delete</button>
+    <!-- Create Post Modal -->
+    <div id="create-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center hidden">
+        <div class="bg-white w-full max-w-md h-[80vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col slide-up">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100">
+                <button onclick="closeCreateModal()" class="text-slate-500 font-medium text-sm">Cancel</button>
+                <h3 class="font-bold text-slate-900">New Shift Log</h3>
+                <button onclick="submitPost()" id="submit-post-btn" class="text-teal-600 font-bold text-sm disabled:opacity-50">Post</button>
+            </div>
+            <div class="flex-1 p-4 overflow-y-auto">
+                <textarea id="post-content" class="w-full min-h-[150px] resize-none focus:outline-none text-lg placeholder:text-slate-300 text-slate-700" placeholder="What's happening on your shift?"></textarea>
+                <div id="image-preview" class="hidden relative rounded-xl overflow-hidden mb-4 border border-slate-200">
+                    <img id="preview-img" class="w-full h-auto max-h-[300px] object-cover">
+                    <button onclick="removeImage()" class="absolute top-2 right-2 bg-slate-900/70 text-white p-1.5 rounded-full backdrop-blur-md"><i data-lucide="x" width="16"></i></button>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100">
+                <label class="flex items-center gap-3 text-teal-600 font-bold text-sm p-3 rounded-xl hover:bg-teal-50 transition-colors cursor-pointer border border-dashed border-teal-200 justify-center">
+                    <i data-lucide="camera" width="20"></i>
+                    <span>Add Photo</span>
+                    <input type="file" id="post-image" accept="image/*" class="hidden" onchange="handleImageSelect(this)">
+                </label>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 z-[100] bg-slate-50 flex flex-col items-center justify-center text-teal-600">
-        <svg class="animate-spin w-10 h-10 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="font-semibold text-slate-400">Syncing Scrubs...</p>
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-lg text-slate-900">Edit Profile</h3>
+                <button onclick="closeEditProfile()"><i data-lucide="x" class="text-slate-400"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Display Name</label>
+                    <input type="text" id="edit-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Role</label>
+                    <select id="edit-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="RN">RN</option>
+                        <option value="LPN">LPN</option>
+                        <option value="NP">NP</option>
+                        <option value="MD/DO">MD / DO</option>
+                        <option value="Student">Student</option>
+                        <option value="Tech">Tech</option>
+                    </select>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="privacy-icon-container" class="p-2 rounded-lg bg-blue-100 text-blue-600"><i data-lucide="globe" width="18"></i></div>
+                        <div>
+                            <div id="privacy-label" class="font-bold text-sm text-slate-900">Public Profile</div>
+                            <div id="privacy-desc" class="text-xs text-slate-500">Visible to everyone</div>
+                        </div>
+                    </div>
+                    <button onclick="togglePrivacy()" id="privacy-toggle" class="w-12 h-6 rounded-full relative transition-colors bg-slate-300">
+                        <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm"></div>
+                    </button>
+                </div>
+                <button onclick="saveProfile()" id="save-profile-btn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Save Changes</button>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove, getDocs, where, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove, getDocs, where, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        // Global State
-        let state = {
-            user: null,
-            userData: null,
-            activeTab: 'home',
-            posts: [],
-            savedIds: [],
-            notifications: [],
-            targetProfileId: null,
-            appId: typeof __app_id !== 'undefined' ? __app_id : 'default-scrubsocial'
-        };
-
-        // Firebase Setup
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "", // Filled at runtime
-            authDomain: "scrubsocial-de5cf.firebaseapp.com",
-            projectId: "scrubsocial-de5cf",
-            storageBucket: "scrubsocial-de5cf.firebasestorage.app",
-            messagingSenderId: "87542166167",
-            appId: "1:87542166167:web:20e1272374577e14fcefd2"
+        // --- Configuration ---
+        const firebaseConfig = {
+           apiKey: "AIzaSyAuc1G9CwL3uLdEXcQ1Osu1VAqax5QVlnA",
+           authDomain: "scrubsocial-de5cf.firebaseapp.com",
+           projectId: "scrubsocial-de5cf",
+           storageBucket: "scrubsocial-de5cf.firebasestorage.app",
+           messagingSenderId: "87542166167",
+           appId: "1:87542166167:web:20e1272374577e14fcefd2"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        // Core Functions
-        const init = async () => {
-            // Wait for auth
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
+        // --- State ---
+        let currentUser = null;
+        let currentUserData = null;
+        let activeTab = 'home';
+        let targetProfileId = null;
+        let editingPrivacy = false;
+
+        // --- Auth Logic ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                // Fetch or Create User Data
+                const userRef = doc(db, "users", user.uid);
+                onSnapshot(userRef, (snap) => {
+                    if (snap.exists()) {
+                        currentUserData = snap.data();
+                        renderApp();
+                    } else {
+                        const baseData = {
+                            displayName: user.displayName || 'Nurse',
+                            email: user.email,
+                            role: 'RN',
+                            isPrivate: false,
+                            savedPosts: [],
+                            following: [],
+                            createdAt: serverTimestamp()
+                        };
+                        setDoc(userRef, baseData);
+                        currentUserData = baseData;
+                        renderApp();
+                    }
+                });
+                
+                // Notifications Listener
+                const notifQ = query(collection(db, "notifications"), where("targetUserId", "==", user.uid));
+                onSnapshot(notifQ, (snap) => {
+                    const unread = snap.docs.filter(d => !d.data().read).length;
+                    const badge = document.getElementById('notif-badge');
+                    if(unread > 0) {
+                        badge.classList.remove('hidden');
+                        badge.innerText = unread > 9 ? '9+' : unread;
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                });
+
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                switchTab('home');
             } else {
-                await signInAnonymously(auth).catch(e => console.error("Auth failed", e));
+                currentUser = null;
+                currentUserData = null;
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
             }
+        });
 
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    state.user = user;
-                    setupListeners();
-                } else {
-                    state.user = null;
-                    showAuth();
-                }
-                hideLoading();
-            });
-        };
-
-        const setupListeners = () => {
-            if (!state.user) return;
-
-            // Public Posts Listener
-            const postsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts');
-            const postsQuery = query(postsRef); // Simple query as per Rule 2
-            onSnapshot(postsQuery, (snap) => {
-                state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                render();
-            }, (err) => console.error("Posts error", err));
-
-            // User Data Listener
-            const userRef = doc(db, 'artifacts', state.appId, 'users', state.user.uid, 'profile', 'data');
-            onSnapshot(userRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    state.userData = docSnap.data();
-                    state.savedIds = state.userData.savedPosts || [];
-                } else {
-                    // Initialize if first time
-                    const initialData = {
-                        displayName: state.user.displayName || "Professional",
-                        role: "RN",
-                        savedPosts: [],
-                        following: [],
-                        createdAt: serverTimestamp()
-                    };
-                    setDoc(userRef, initialData);
-                    state.userData = initialData;
-                }
-                render();
-            }, (err) => console.error("User data error", err));
-
-            // Notifications
-            const notifRef = collection(db, 'artifacts', state.appId, 'users', state.user.uid, 'notifications');
-            onSnapshot(notifRef, (snap) => {
-                state.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                updateNotifBadge();
-                if (state.activeTab === 'notifications') render();
-            });
-
-            showApp();
-        };
-
-        // --- UI Rendering ---
-
-        const render = () => {
-            const container = document.getElementById('main-content');
+        // --- Global Functions (Exposed to Window for HTML onclick) ---
+        window.switchTab = async (tab, profileId = null) => {
+            activeTab = tab;
+            targetProfileId = profileId || (tab === 'profile' ? currentUser.uid : null);
             
-            // Highlight active tab in dock
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            
+            // Update Dock Icons
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (btn.dataset.tab === state.activeTab) {
-                    btn.classList.add('text-white', 'bg-slate-800');
-                    btn.classList.remove('text-slate-400');
+                if(btn.dataset.tab === tab) {
+                    btn.classList.add('bg-slate-800', 'text-white', 'shadow-inner');
                 } else {
-                    btn.classList.remove('text-white', 'bg-slate-800');
-                    btn.classList.add('text-slate-400');
+                    btn.classList.remove('bg-slate-800', 'text-white', 'shadow-inner');
                 }
             });
 
-            switch(state.activeTab) {
-                case 'home': renderFeed(container, state.posts); break;
-                case 'explore': renderExplore(container); break;
-                case 'saved': renderFeed(container, state.posts.filter(p => state.savedIds.includes(p.id)), "Saved Posts"); break;
-                case 'notifications': renderNotifications(container); break;
-                case 'profile': renderProfile(container, state.targetProfileId || state.user.uid); break;
-            }
-        };
-
-        const renderFeed = (container, posts, title = null) => {
-            let html = `<div class="max-w-xl mx-auto pt-6 px-4 space-y-6">`;
-            if (title) html += `<h2 class="text-2xl font-bold text-slate-800 px-2">${title}</h2>`;
+            if(tab === 'home') renderFeed();
+            if(tab === 'explore') renderExplore();
+            if(tab === 'saved') renderSaved();
+            if(tab === 'notifications') renderNotifications();
+            if(tab === 'profile') renderProfile(targetProfileId);
             
-            if (posts.length === 0) {
-                html += `<div class="text-center py-20 text-slate-400">No posts found.</div>`;
-            } else {
-                posts.forEach(post => {
-                    html += `
-                        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 relative">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold cursor-pointer" onclick="viewProfile('${post.authorId}')">
-                                    ${post.authorName?.charAt(0) || 'U'}
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start">
-                                        <div onclick="viewProfile('${post.authorId}')" class="cursor-pointer">
-                                            <h3 class="font-bold text-slate-900 text-sm leading-none">${post.authorName}</h3>
-                                            <p class="text-xs text-teal-600 font-medium mt-1">${post.authorRole || 'Healthcare Pro'}</p>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs text-slate-400">${formatTime(post.createdAt)}</span>
-                                            ${post.authorId === state.user.uid ? `
-                                                <button onclick="confirmDeletePost('${post.id}')" class="p-1 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded-full transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                                </button>
-                                            ` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-slate-700 text-sm mb-3 leading-relaxed whitespace-pre-wrap">${post.content}</p>
-                            <div class="flex items-center justify-between pt-2 border-t border-slate-50">
-                                <div class="flex gap-4">
-                                    <button onclick="toggleLike('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold ${post.likes?.includes(state.user.uid) ? 'text-red-500' : 'text-slate-500'}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${post.likes?.includes(state.user.uid) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                                        <span>${post.likes?.length || 0}</span>
-                                    </button>
-                                    <button onclick="toggleComments('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-                                        <span>${post.commentCount || 0}</span>
-                                    </button>
-                                </div>
-                                <button onclick="toggleSave('${post.id}')" class="${state.savedIds.includes(post.id) ? 'text-teal-600' : 'text-slate-400'}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${state.savedIds.includes(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-                                </button>
-                            </div>
-                            <div id="comments-${post.id}" class="hidden mt-4 pt-3 border-t border-slate-100"></div>
-                        </div>
-                    `;
-                });
-            }
-            html += `</div>`;
-            container.innerHTML = html;
+            lucide.createIcons();
         };
 
-        const renderProfile = async (container, uid) => {
-            const isMe = uid === state.user.uid;
-            let profileData = state.userData;
+        // --- Renderers ---
+
+        function getAvatarHTML(url, name, size='md') {
+            const sizes = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', xl: 'w-24 h-24 text-2xl' };
+            const content = url 
+                ? `<img src="${url}" class="w-full h-full object-cover">` 
+                : `<span>${name?.charAt(0).toUpperCase()}</span>`;
+            return `<div class="${sizes[size]} rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-white shadow-sm border-2 border-white bg-slate-200">${content}</div>`;
+        }
+
+        function getTimeAgo(timestamp) {
+            if(!timestamp) return 'Just now';
+            const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+            const diff = Math.floor((new Date() - date) / 1000);
+            if(diff < 60) return 'Just now';
+            if(diff < 3600) return `${Math.floor(diff/60)}m`;
+            if(diff < 86400) return `${Math.floor(diff/3600)}h`;
+            return `${Math.floor(diff/86400)}d`;
+        }
+
+        async function renderFeed() {
+            const container = document.getElementById('view-home');
+            container.innerHTML = '<div class="flex justify-center"><div class="loader"></div></div>';
             
-            if (!isMe) {
-                const snap = await getDoc(doc(db, 'artifacts', state.appId, 'users', uid, 'profile', 'data'));
-                profileData = snap.exists() ? snap.data() : { displayName: "User", role: "Healthcare Pro" };
-            }
-
-            const myPosts = state.posts.filter(p => p.authorId === uid);
-
-            container.innerHTML = `
-                <div class="pb-20">
-                    <div class="bg-white pb-6 rounded-b-[2.5rem] shadow-sm border-b border-slate-100 px-6 pt-6">
-                        <div class="flex flex-col items-center">
-                            <div class="w-24 h-24 rounded-full bg-teal-500 flex items-center justify-center text-white text-3xl font-bold shadow-xl">
-                                ${profileData.displayName?.charAt(0)}
-                            </div>
-                            <h2 class="text-xl font-bold text-slate-900 mt-4">${profileData.displayName}</h2>
-                            <span class="text-xs font-bold bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md uppercase tracking-wide mt-1">${profileData.role}</span>
-                            
-                            <div class="flex gap-8 mt-6 w-full max-w-xs justify-center">
-                                <div class="text-center">
-                                    <div class="text-lg font-bold text-slate-900">${myPosts.length}</div>
-                                    <div class="text-xs text-slate-400 font-medium uppercase">Posts</div>
-                                </div>
-                                <div class="text-center border-l border-r border-slate-100 px-8">
-                                    <div class="text-lg font-bold text-slate-900">${profileData.followers?.length || 0}</div>
-                                    <div class="text-xs text-slate-400 font-medium uppercase">Followers</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-lg font-bold text-slate-900">${profileData.following?.length || 0}</div>
-                                    <div class="text-xs text-slate-400 font-medium uppercase">Following</div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-6 w-full max-w-xs">
-                                ${isMe ? `
-                                    <button onclick="handleLogout()" class="w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl flex items-center justify-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                                        Log Out
-                                    </button>
-                                ` : `
-                                    <button class="w-full py-3 bg-teal-600 text-white font-bold rounded-xl">Follow</button>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 mt-6">
-                        <h3 class="font-bold text-slate-800 mb-4 px-2">Shifts</h3>
-                        <div id="profile-posts"></div>
-                    </div>
-                </div>
-            `;
+            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            const snap = await getDocs(q);
+            container.innerHTML = '';
             
-            renderFeed(document.getElementById('profile-posts'), myPosts);
-        };
-
-        const renderNotifications = (container) => {
-            let html = `<div class="p-4"><h2 class="text-2xl font-bold text-slate-800 mb-6 px-2">Notifications</h2><div class="space-y-2">`;
-            if (state.notifications.length === 0) {
-                html += `<div class="text-center p-10 text-slate-400 bg-white rounded-3xl border border-slate-100">All caught up!</div>`;
-            } else {
-                state.notifications.forEach(n => {
-                    html += `
-                        <div class="p-4 rounded-2xl border flex items-center gap-3 ${n.read ? 'bg-white border-slate-100' : 'bg-teal-50/50 border-teal-100'}">
-                            <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-slate-700">${n.message}</p>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            html += `</div></div>`;
-            container.innerHTML = html;
-        };
-
-        const renderExplore = (container) => {
-            container.innerHTML = `
-                <div class="p-4">
-                    <div class="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-3xl p-6 text-white shadow-lg mb-6">
-                        <h2 class="text-2xl font-bold mb-2">Find Your Team</h2>
-                        <p class="text-teal-50 opacity-90 text-sm mb-4">Connect with colleagues across the system.</p>
-                        <input type="text" placeholder="Search by name or unit..." class="w-full bg-white/20 border border-white/30 rounded-xl py-2.5 px-4 placeholder:text-teal-50 text-white outline-none">
-                    </div>
-                    <div class="text-center py-10 text-slate-400">Search functionality coming soon.</div>
-                </div>
-            `;
-        };
-
-        // --- Post Actions ---
-
-        window.toggleComments = async (postId) => {
-            const div = document.getElementById(`comments-${postId}`);
-            if (!div.classList.contains('hidden')) {
-                div.classList.add('hidden');
+            if(snap.empty) {
+                container.innerHTML = '<div class="text-center text-slate-400 mt-10">No posts yet.</div>';
                 return;
             }
-            div.classList.remove('hidden');
-            div.innerHTML = `<div class="flex justify-center py-2"><svg class="animate-spin h-5 w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>`;
 
-            const commentsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments');
-            onSnapshot(query(commentsRef), (snap) => {
-                const comments = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-                
-                let html = `<div class="space-y-3 mb-4 max-h-60 overflow-y-auto no-scrollbar">`;
-                comments.forEach(c => {
-                    html += `
-                        <div class="text-sm bg-slate-50 p-2.5 rounded-xl group relative">
-                            <span class="font-bold text-slate-800 mr-2">${c.authorName}</span>
-                            <span class="text-slate-600">${c.text}</span>
-                            ${c.authorId === state.user.uid ? `
-                                <button onclick="confirmDeleteComment('${postId}', '${c.id}')" class="absolute right-2 top-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                </button>
-                            ` : ''}
+            snap.forEach(doc => {
+                const post = { id: doc.id, ...doc.data() };
+                container.appendChild(createPostElement(post));
+            });
+            lucide.createIcons();
+        }
+
+        async function renderExplore() {
+            const container = document.getElementById('view-explore');
+            const snap = await getDocs(collection(db, "users"));
+            let html = `
+                <div class="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-3xl p-6 text-white shadow-lg mb-6">
+                    <h2 class="text-2xl font-bold mb-2">Find Your Team</h2>
+                    <p class="text-teal-50 opacity-90 text-sm mb-4">Connect with colleagues.</p>
+                </div>
+                <h3 class="font-bold text-slate-800 text-lg px-2">Suggested</h3>
+                <div class="space-y-3">
+            `;
+            
+            snap.forEach(doc => {
+                const u = doc.data();
+                if(doc.id === currentUser.uid) return;
+                html += `
+                    <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('profile', '${doc.id}')">
+                            ${getAvatarHTML(u.photoURL, u.displayName)}
+                            <div>
+                                <div class="font-bold text-slate-900 text-sm">${u.displayName}</div>
+                                <div class="text-xs text-slate-500 font-medium bg-slate-100 inline-block px-1.5 py-0.5 rounded mt-0.5">${u.role}</div>
+                            </div>
                         </div>
-                    `;
-                });
-                html += `</div>
-                    <div class="flex gap-2">
-                        <input type="text" id="input-${postId}" placeholder="Add a comment..." class="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-teal-500">
-                        <button onclick="postComment('${postId}')" class="text-teal-600 font-bold text-sm">Post</button>
+                        <button onclick="switchTab('profile', '${doc.id}')" class="text-xs font-bold bg-slate-900 text-white px-4 py-2 rounded-lg">View</button>
                     </div>
                 `;
-                div.innerHTML = html;
             });
-        };
+            html += '</div>';
+            container.innerHTML = html;
+        }
 
-        window.postComment = async (postId) => {
-            const input = document.getElementById(`input-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
+        async function renderNotifications() {
+            const container = document.getElementById('view-notifications');
+            const q = query(collection(db, "notifications"), where("targetUserId", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            const notifs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.createdAt - a.createdAt);
+            
+            container.innerHTML = '<h2 class="text-2xl font-bold text-slate-800 mb-6 px-2">Notifications</h2>';
+            if(notifs.length === 0) {
+                container.innerHTML += '<div class="text-center p-10 text-slate-400 bg-white rounded-3xl border border-slate-100">All caught up!</div>';
+                return;
+            }
 
-            input.value = '';
-            const commentsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments');
-            await addDoc(commentsRef, {
-                text,
-                authorId: state.user.uid,
-                authorName: state.userData.displayName,
-                createdAt: serverTimestamp()
+            notifs.forEach(n => {
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-2xl border flex items-center gap-3 cursor-pointer mb-2 ${n.read ? 'bg-white border-slate-100' : 'bg-teal-50/50 border-teal-100'}`;
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0"><i data-lucide="heart" width="20"></i></div>
+                    <div class="flex-1 text-sm text-slate-700">Someone <span class="font-bold">${n.message}</span></div>
+                    ${!n.read ? '<div class="w-2 h-2 rounded-full bg-teal-500"></div>' : ''}
+                `;
+                div.onclick = async () => {
+                    if(!n.read) await updateDoc(doc(db, "notifications", n.id), { read: true });
+                    if(n.fromUserId) switchTab('profile', n.fromUserId);
+                    else switchTab('home');
+                };
+                container.appendChild(div);
             });
+            lucide.createIcons();
+        }
 
-            // Update count
-            const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
-            const snap = await getDoc(postRef);
-            if (snap.exists()) {
-                await updateDoc(postRef, { commentCount: (snap.data().commentCount || 0) + 1 });
+        async function renderProfile(uid) {
+            const container = document.getElementById('view-profile');
+            container.innerHTML = '<div class="flex justify-center pt-20"><div class="loader"></div></div>';
+            
+            const isMe = uid === currentUser.uid;
+            let pUser = isMe ? currentUserData : (await getDoc(doc(db, "users", uid))).data();
+            
+            if(!pUser) { container.innerHTML = 'User not found'; return; }
+
+            // Get Posts
+            // Note: Simple query due to potential index missing on combined fields
+            const q = query(collection(db, "posts"), where("authorId", "==", uid));
+            const snap = await getDocs(q);
+            const posts = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+
+            const isFollowing = currentUserData.following?.includes(uid);
+
+            let html = `
+                <div class="bg-white pb-6 rounded-b-[2.5rem] shadow-sm border-b border-slate-100 px-6 pt-6">
+                    <div class="flex flex-col items-center">
+                        <div class="relative group">
+                            ${getAvatarHTML(pUser.photoURL, pUser.displayName, 'xl')}
+                            ${isMe ? `<label class="absolute bottom-0 right-0 bg-slate-900 text-white p-2 rounded-full cursor-pointer"><i data-lucide="camera" width="14"></i><input type="file" class="hidden" accept="image/*" onchange="window.updateAvatar(this)"></label>` : ''}
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mt-4">${pUser.displayName}</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-bold bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md uppercase">${pUser.role}</span>
+                            ${pUser.isPrivate ? '<span class="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md uppercase flex items-center gap-1"><i data-lucide="lock" width="10"></i> Private</span>' : ''}
+                        </div>
+                        <div class="flex gap-8 mt-6 w-full max-w-xs justify-center text-center">
+                            <div><div class="text-lg font-bold">${posts.length}</div><div class="text-xs text-slate-400 font-medium uppercase">Posts</div></div>
+                            <div class="border-l border-r border-slate-100 px-8">
+                                <div class="text-lg font-bold">0</div><div class="text-xs text-slate-400 font-medium uppercase">Followers</div>
+                            </div>
+                            <div><div class="text-lg font-bold">0</div><div class="text-xs text-slate-400 font-medium uppercase">Following</div></div>
+                        </div>
+                        <div class="flex gap-3 mt-6 w-full max-w-sm">
+                            ${isMe 
+                                ? `<button onclick="openEditProfile()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2 rounded-xl text-sm">Edit Profile</button>
+                                   <button onclick="window.logout()" class="w-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i data-lucide="log-out" width="18"></i></button>`
+                                : `<button onclick="window.toggleFollow('${uid}')" class="flex-1 ${isFollowing ? 'border-2 border-slate-200 text-slate-600' : 'bg-teal-600 text-white'} font-bold py-2 rounded-xl text-sm">${isFollowing ? 'Following' : 'Follow'}</button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 mt-6 space-y-4" id="profile-posts-container"></div>
+            `;
+            container.innerHTML = html;
+            
+            const postContainer = document.getElementById('profile-posts-container');
+            if(posts.length === 0) postContainer.innerHTML = '<div class="text-center p-8 text-slate-400 border border-dashed border-slate-200 rounded-2xl">No posts yet.</div>';
+            else posts.forEach(p => postContainer.appendChild(createPostElement(p)));
+            
+            lucide.createIcons();
+        }
+
+        async function renderSaved() {
+            const container = document.getElementById('view-saved');
+            container.innerHTML = '<h2 class="text-2xl font-bold text-slate-800 px-2 flex items-center gap-2 mb-4"><i data-lucide="bookmark"></i> Saved Posts</h2><div class="space-y-4" id="saved-list"></div>';
+            const list = document.getElementById('saved-list');
+            
+            if(!currentUserData.savedPosts || currentUserData.savedPosts.length === 0) {
+                list.innerHTML = '<div class="text-center p-10 text-slate-400">No saved posts.</div>';
+                return;
+            }
+            
+            // Manual fetch
+            const q = query(collection(db, "posts"));
+            const snap = await getDocs(q);
+            const saved = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(p => currentUserData.savedPosts.includes(p.id));
+            
+            if(saved.length === 0) list.innerHTML = '<div class="text-center p-10 text-slate-400">No saved posts found.</div>';
+            else saved.forEach(p => list.appendChild(createPostElement(p)));
+            lucide.createIcons();
+        }
+
+        // --- Helper: Create Post Element (Robust Delete Included) ---
+        function createPostElement(post) {
+            const isLiked = post.likes?.includes(currentUser.uid);
+            const isSaved = currentUserData.savedPosts?.includes(post.id);
+            const isAuthor = post.authorId === currentUser.uid;
+
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-3xl p-4 shadow-sm border border-slate-100 transition-shadow hover:shadow-md relative mb-4';
+            
+            div.innerHTML = `
+                <div class="flex items-center gap-3 mb-3">
+                    <div onclick="event.stopPropagation(); switchTab('profile', '${post.authorId}')" class="cursor-pointer">
+                        ${getAvatarHTML(post.authorPhoto, post.authorName)}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div onclick="event.stopPropagation(); switchTab('profile', '${post.authorId}')" class="cursor-pointer">
+                                <h3 class="font-bold text-slate-900 text-sm leading-none hover:underline">${post.authorName}</h3>
+                                <p class="text-xs text-teal-600 font-medium mt-1">${post.authorRole}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 font-medium">${getTimeAgo(post.createdAt)}</span>
+                                ${isAuthor ? `
+                                    <button onclick="window.deletePost(event, '${post.id}')" class="p-1.5 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded-full transition-colors">
+                                        <i data-lucide="trash-2" width="16"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ${post.content ? `<p class="text-slate-700 text-sm mb-3 leading-relaxed whitespace-pre-wrap">${post.content}</p>` : ''}
+                ${post.image ? `<div class="rounded-2xl overflow-hidden mb-3 bg-slate-100 border border-slate-100"><img src="${post.image}" class="w-full h-auto object-cover max-h-[400px]"></div>` : ''}
+                
+                <div class="flex items-center justify-between pt-2 border-t border-slate-50 mt-2">
+                    <div class="flex gap-4">
+                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold ${isLiked ? 'text-red-500' : 'text-slate-500'}">
+                            <i data-lucide="heart" width="20" class="${isLiked ? 'fill-current' : ''}"></i>
+                            <span>${post.likes?.length || 0}</span>
+                        </button>
+                        <button onclick="window.toggleComments('${post.id}')" class="flex items-center gap-1.5 text-sm font-semibold text-slate-500">
+                            <i data-lucide="message-circle" width="20"></i>
+                            <span>${post.commentCount || 0}</span>
+                        </button>
+                    </div>
+                    <button onclick="window.toggleSave('${post.id}')" class="${isSaved ? 'text-teal-600' : 'text-slate-400'}">
+                        <i data-lucide="bookmark" width="20" class="${isSaved ? 'fill-current' : ''}"></i>
+                    </button>
+                </div>
+                <div id="comments-${post.id}" class="hidden mt-4 pt-3 border-t border-slate-100">
+                    <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
+                    <form onsubmit="window.submitComment(event, '${post.id}')" class="flex gap-2">
+                        <input type="text" id="input-${post.id}" placeholder="Add a comment..." class="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        <button type="submit" class="text-teal-600 font-bold text-sm">Post</button>
+                    </form>
+                </div>
+            `;
+            return div;
+        }
+
+        // --- Action Handlers (Window Scope) ---
+        
+        window.deletePost = async (e, postId) => {
+            e.stopPropagation(); // CRITICAL: Stop bubbling
+            if(!confirm("Are you sure you want to delete this post?")) return;
+            try {
+                await deleteDoc(doc(db, "posts", postId));
+                // Reload current view
+                if(activeTab === 'home') renderFeed();
+                else if(activeTab === 'profile') renderProfile(targetProfileId);
+            } catch(err) {
+                console.error("Delete Error:", err);
+                alert("Error deleting post: " + err.message);
             }
         };
 
         window.toggleLike = async (postId) => {
-            const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
-            const postSnap = await getDoc(postRef);
-            if (!postSnap.exists()) return;
+            const postRef = doc(db, "posts", postId);
+            const p = (await getDoc(postRef)).data();
+            const isLiked = p.likes?.includes(currentUser.uid);
+            await updateDoc(postRef, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+            // Re-render (could be optimized)
+            switchTab(activeTab, targetProfileId);
+        };
 
-            const post = postSnap.data();
-            const isLiked = post.likes?.includes(state.user.uid);
+        window.toggleSave = async (postId) => {
+            const isSaved = currentUserData.savedPosts?.includes(postId);
+            await updateDoc(doc(db, "users", currentUser.uid), { savedPosts: isSaved ? arrayRemove(postId) : arrayUnion(postId) });
+        };
 
-            await updateDoc(postRef, {
-                likes: isLiked ? arrayRemove(state.user.uid) : arrayUnion(state.user.uid)
+        window.toggleComments = async (postId) => {
+            const section = document.getElementById(`comments-${postId}`);
+            const list = document.getElementById(`comments-list-${postId}`);
+            
+            if(section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                // Load Comments
+                const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+                onSnapshot(q, (snap) => {
+                    list.innerHTML = '';
+                    if(snap.empty) list.innerHTML = '<p class="text-xs text-slate-400">No comments yet.</p>';
+                    snap.forEach(doc => {
+                        const c = doc.data();
+                        const isMyComment = c.authorId === currentUser.uid;
+                        const el = document.createElement('div');
+                        el.className = 'text-sm bg-slate-50 p-2.5 rounded-xl relative group';
+                        el.innerHTML = `
+                            <span class="font-bold text-slate-800 mr-2 cursor-pointer" onclick="switchTab('profile', '${c.authorId}')">${c.authorName}</span>
+                            <span class="text-slate-600">${c.text}</span>
+                            ${isMyComment ? `<button onclick="window.deleteComment('${postId}', '${doc.id}')" class="absolute right-2 top-2 text-slate-300 hover:text-red-500"><i data-lucide="x" width="14"></i></button>` : ''}
+                        `;
+                        list.appendChild(el);
+                    });
+                    lucide.createIcons();
+                });
+            } else {
+                section.classList.add('hidden');
+            }
+        };
+
+        window.submitComment = async (e, postId) => {
+            e.preventDefault();
+            const input = document.getElementById(`input-${postId}`);
+            if(!input.value.trim()) return;
+            
+            await addDoc(collection(db, "posts", postId, "comments"), {
+                text: input.value,
+                authorName: currentUserData.displayName,
+                authorId: currentUser.uid,
+                createdAt: serverTimestamp()
             });
+            input.value = '';
+            
+            // Update counts (basic)
+            const pRef = doc(db, "posts", postId);
+            const pSnap = await getDoc(pRef);
+            await updateDoc(pRef, { commentCount: (pSnap.data().commentCount||0) + 1 });
+        };
 
-            if (!isLiked && post.authorId !== state.user.uid) {
-                const notifRef = collection(db, 'artifacts', state.appId, 'users', post.authorId, 'notifications');
-                await addDoc(notifRef, {
-                    type: 'like',
-                    fromId: state.user.uid,
-                    message: `${state.userData.displayName} liked your shift update.`,
+        window.deleteComment = async (postId, commentId) => {
+            if(!confirm("Delete comment?")) return;
+            try {
+                // Ensure the path matches where you added it
+                await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+                // Decrement count
+                const pRef = doc(db, "posts", postId);
+                const pSnap = await getDoc(pRef);
+                const curr = pSnap.data().commentCount || 1;
+                await updateDoc(pRef, { commentCount: curr - 1 });
+            } catch(e) { console.error(e); alert("Failed to delete comment"); }
+        };
+
+        window.toggleFollow = async (uid) => {
+            const myRef = doc(db, "users", currentUser.uid);
+            const isFollowing = currentUserData.following?.includes(uid);
+            
+            if(isFollowing) {
+                await updateDoc(myRef, { following: arrayRemove(uid) });
+            } else {
+                await updateDoc(myRef, { following: arrayUnion(uid) });
+                await addDoc(collection(db, "notifications"), {
+                    targetUserId: uid,
+                    message: "started following you",
+                    fromUserId: currentUser.uid,
                     read: false,
                     createdAt: serverTimestamp()
                 });
             }
         };
 
-        window.toggleSave = async (postId) => {
-            const userRef = doc(db, 'artifacts', state.appId, 'users', state.user.uid, 'profile', 'data');
-            const isSaved = state.savedIds.includes(postId);
-            await updateDoc(userRef, {
-                savedPosts: isSaved ? arrayRemove(postId) : arrayUnion(postId)
-            });
-        };
-
-        // --- DELETE LOGIC (REPAIRED) ---
-
-        window.confirmDeletePost = (postId) => {
-            const dialog = document.getElementById('confirm-dialog');
-            const yesBtn = document.getElementById('confirm-yes');
-            const cancelBtn = document.getElementById('confirm-cancel');
-            
-            dialog.classList.remove('hidden');
-            
-            const cleanup = () => {
-                dialog.classList.add('hidden');
-                yesBtn.onclick = null;
-                cancelBtn.onclick = null;
-            };
-
-            cancelBtn.onclick = cleanup;
-            yesBtn.onclick = async () => {
-                try {
-                    const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
-                    await deleteDoc(postRef);
-                } catch (e) {
-                    console.error("Delete failed", e);
-                }
-                cleanup();
-            };
-        };
-
-        window.confirmDeleteComment = (postId, commentId) => {
-            const dialog = document.getElementById('confirm-dialog');
-            const yesBtn = document.getElementById('confirm-yes');
-            const cancelBtn = document.getElementById('confirm-cancel');
-            
-            document.getElementById('confirm-message').innerText = "Delete this comment?";
-            dialog.classList.remove('hidden');
-            
-            const cleanup = () => {
-                dialog.classList.add('hidden');
-                document.getElementById('confirm-message').innerText = "This action cannot be undone.";
-                yesBtn.onclick = null;
-                cancelBtn.onclick = null;
-            };
-
-            cancelBtn.onclick = cleanup;
-            yesBtn.onclick = async () => {
-                try {
-                    const commentRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId, 'comments', commentId);
-                    await deleteDoc(commentRef);
-                    
-                    const postRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'posts', postId);
-                    const snap = await getDoc(postRef);
-                    if (snap.exists()) {
-                        const current = snap.data().commentCount || 1;
-                        await updateDoc(postRef, { commentCount: current > 0 ? current - 1 : 0 });
-                    }
-                } catch (e) {
-                    console.error("Comment delete failed", e);
-                }
-                cleanup();
-            };
-        };
-
-        // --- Modals ---
-
-        window.showCreateModal = () => {
-            const overlay = document.getElementById('modal-overlay');
-            const container = document.getElementById('modal-container');
-            overlay.classList.remove('hidden');
-            container.innerHTML = `
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="closeModal()" class="text-slate-400 font-medium">Cancel</button>
-                        <h3 class="font-bold text-slate-900">New Shift Log</h3>
-                        <button onclick="submitPost()" id="submit-post-btn" class="text-teal-600 font-bold">Post</button>
-                    </div>
-                    <div class="flex gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold">${state.userData.displayName.charAt(0)}</div>
-                        <div>
-                            <p class="font-bold text-sm text-slate-900">${state.userData.displayName}</p>
-                            <p class="text-xs text-slate-400">Public</p>
-                        </div>
-                    </div>
-                    <textarea id="post-content" class="w-full min-h-[150px] resize-none outline-none text-lg placeholder:text-slate-300 text-slate-700" placeholder="What's happening on your shift?"></textarea>
-                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-teal-600 font-bold gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                        <span>Add Photo (Demo)</span>
-                    </div>
-                </div>
-            `;
-        };
-
-        window.submitPost = async () => {
-            const content = document.getElementById('post-content').value.trim();
-            if (!content) return;
-
-            document.getElementById('submit-post-btn').innerText = '...';
-            const postsRef = collection(db, 'artifacts', state.appId, 'public', 'data', 'posts');
-            await addDoc(postsRef, {
-                content,
-                authorId: state.user.uid,
-                authorName: state.userData.displayName,
-                authorRole: state.userData.role,
-                createdAt: serverTimestamp(),
-                likes: [],
-                commentCount: 0
-            });
-            closeModal();
-        };
-
-        window.closeModal = () => {
-            document.getElementById('modal-overlay').classList.add('hidden');
-        };
-
-        // --- Navigation ---
-
-        window.navigateTo = (tab) => {
-            state.activeTab = tab;
-            state.targetProfileId = null;
-            render();
-            // Auto collapse dock on selection
-            toggleDock(false);
-        };
-
-        window.viewProfile = (uid) => {
-            state.activeTab = 'profile';
-            state.targetProfileId = uid;
-            render();
-        };
-
-        const toggleDock = (expanded) => {
-            document.getElementById('dock-trigger').classList.toggle('hidden', expanded);
-            document.getElementById('dock-expanded').classList.toggle('hidden', !expanded);
-        };
-
-        // --- Helpers ---
-
-        const formatTime = (ts) => {
-            if (!ts) return 'Just now';
-            const date = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
-            const diff = Math.floor((new Date() - date) / 1000);
-            if (diff < 60) return 'Just now';
-            if (diff < 3600) return `${Math.floor(diff/60)}m`;
-            if (diff < 86400) return `${Math.floor(diff/3600)}h`;
-            return `${Math.floor(diff/86400)}d`;
-        };
-
-        const updateNotifBadge = () => {
-            const unread = state.notifications.filter(n => !n.read).length;
-            const badge = document.getElementById('notif-badge');
-            if (unread > 0) {
-                badge.innerText = unread > 9 ? '9+' : unread;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+        // --- Modals & Create Logic ---
+        
+        window.openCreateModal = () => document.getElementById('create-modal').classList.remove('hidden');
+        window.closeCreateModal = () => document.getElementById('create-modal').classList.add('hidden');
+        
+        window.handleImageSelect = (input) => {
+            if(input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
             }
         };
 
-        const showAuth = () => {
-            document.getElementById('auth-container').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('hidden');
+        window.removeImage = () => {
+            document.getElementById('post-image').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
         };
 
-        const showApp = () => {
-            document.getElementById('auth-container').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
+        window.submitPost = async () => {
+            const btn = document.getElementById('submit-post-btn');
+            const content = document.getElementById('post-content').value;
+            const fileInput = document.getElementById('post-image');
+            
+            if(!content && !fileInput.files.length) return;
+            
+            btn.disabled = true; btn.innerText = 'Posting...';
+            
+            try {
+                let imgUrl = null;
+                if(fileInput.files[0]) {
+                    const imgRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+                    const snap = await uploadBytes(imgRef, fileInput.files[0]);
+                    imgUrl = await getDownloadURL(snap.ref);
+                }
+
+                await addDoc(collection(db, "posts"), {
+                    content,
+                    image: imgUrl,
+                    authorId: currentUser.uid,
+                    authorName: currentUserData.displayName,
+                    authorRole: currentUserData.role,
+                    authorPhoto: currentUserData.photoURL,
+                    authorColor: 'bg-teal-600',
+                    createdAt: serverTimestamp(),
+                    likes: [],
+                    commentCount: 0
+                });
+                
+                closeCreateModal();
+                document.getElementById('post-content').value = '';
+                removeImage();
+            } catch(e) {
+                console.error(e);
+                alert("Post failed: " + e.message);
+            }
+            btn.disabled = false; btn.innerText = 'Post';
         };
 
-        const hideLoading = () => {
-            document.getElementById('loading-overlay').classList.add('hidden');
+        // --- Profile Editing ---
+        window.openEditProfile = () => {
+            document.getElementById('edit-profile-modal').classList.remove('hidden');
+            document.getElementById('edit-name').value = currentUserData.displayName || '';
+            document.getElementById('edit-role').value = currentUserData.role || 'RN';
+            editingPrivacy = currentUserData.isPrivate || false;
+            updatePrivacyUI();
+        };
+        
+        window.closeEditProfile = () => document.getElementById('edit-profile-modal').classList.add('hidden');
+        
+        window.togglePrivacy = () => {
+            editingPrivacy = !editingPrivacy;
+            updatePrivacyUI();
         };
 
-        window.handleLogout = () => signOut(auth);
+        function updatePrivacyUI() {
+            const btn = document.getElementById('privacy-toggle');
+            const label = document.getElementById('privacy-label');
+            const desc = document.getElementById('privacy-desc');
+            const iconCont = document.getElementById('privacy-icon-container');
+            
+            if(editingPrivacy) {
+                btn.className = 'w-12 h-6 rounded-full relative transition-colors bg-teal-600';
+                btn.innerHTML = '<div class="absolute top-1 left-7 w-4 h-4 bg-white rounded-full transition-all shadow-sm"></div>';
+                iconCont.className = 'p-2 rounded-lg bg-amber-100 text-amber-600';
+                iconCont.innerHTML = '<i data-lucide="lock" width="18"></i>';
+                label.innerText = 'Private Account';
+                desc.innerText = 'Only followers see posts';
+            } else {
+                btn.className = 'w-12 h-6 rounded-full relative transition-colors bg-slate-300';
+                btn.innerHTML = '<div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm"></div>';
+                iconCont.className = 'p-2 rounded-lg bg-blue-100 text-blue-600';
+                iconCont.innerHTML = '<i data-lucide="globe" width="18"></i>';
+                label.innerText = 'Public Profile';
+                desc.innerText = 'Visible to everyone';
+            }
+            lucide.createIcons();
+        }
 
-        // UI Event Listeners
-        document.getElementById('dock-trigger').onclick = () => toggleDock(true);
-        document.getElementById('dock-collapse').onclick = () => toggleDock(false);
-
-        let isLoginMode = true;
-        document.getElementById('auth-toggle-btn').onclick = () => {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back" : "Join Scrubs";
-            document.getElementById('signup-fields').classList.toggle('hidden', isLoginMode);
-            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "New here?" : "Already have an account?";
-            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "Create Account" : "Sign In";
-            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Sign In" : "Create Account";
+        window.saveProfile = async () => {
+            const name = document.getElementById('edit-name').value;
+            const role = document.getElementById('edit-role').value;
+            
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                displayName: name, role, isPrivate: editingPrivacy
+            });
+            closeEditProfile();
+        };
+        
+        window.updateAvatar = async (input) => {
+            if(input.files && input.files[0]) {
+                const f = input.files[0];
+                const r = ref(storage, `avatars/${currentUser.uid}`);
+                await uploadBytes(r, f);
+                const url = await getDownloadURL(r);
+                await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
+            }
         };
 
-        document.getElementById('auth-form').onsubmit = async (e) => {
+        window.logout = () => signOut(auth);
+
+        // --- Dock Logic ---
+        const dock = document.getElementById('nav-dock');
+        const navItems = document.getElementById('nav-items');
+        const menuBtn = document.getElementById('menu-btn');
+        
+        menuBtn.onclick = () => {
+            dock.classList.remove('w-14', 'h-14', 'rounded-full'); // Not explicit w classes on init, but good for reset
+            dock.classList.add('w-auto', 'px-2');
+            menuBtn.classList.add('hidden');
+            navItems.classList.remove('hidden');
+            navItems.classList.add('flex');
+        };
+        
+        document.getElementById('close-menu-btn').onclick = (e) => {
+            e.stopPropagation();
+            navItems.classList.add('hidden');
+            navItems.classList.remove('flex');
+            menuBtn.classList.remove('hidden');
+        };
+
+        // --- Auth Form Logic ---
+        let isLogin = true;
+        const form = document.getElementById('auth-form');
+        const switchBtn = document.getElementById('auth-switch-btn');
+        const switchText = document.getElementById('auth-switch-text');
+        const title = document.getElementById('auth-title');
+        const signupFields = document.getElementById('signup-fields');
+        const submitBtn = document.getElementById('auth-submit');
+        const authError = document.getElementById('auth-error');
+
+        switchBtn.onclick = (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            title.innerText = isLogin ? 'Welcome Back' : 'Join Scrubs';
+            switchText.innerText = isLogin ? 'New here?' : 'Already have an account?';
+            switchBtn.innerText = isLogin ? 'Create Account' : 'Sign In';
+            submitBtn.innerText = isLogin ? 'Sign In' : 'Create Account';
+            if(isLogin) signupFields.classList.add('hidden');
+            else signupFields.classList.remove('hidden');
+        };
+
+        form.onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const errorDiv = document.getElementById('auth-error');
-            errorDiv.classList.add('hidden');
+            const pass = document.getElementById('auth-password').value;
+            authError.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Please wait...';
 
             try {
-                if (isLoginMode) {
+                if(isLogin) {
                     await signInWithEmailAndPassword(auth, email, pass);
                 } else {
                     const name = document.getElementById('auth-name').value;
                     const role = document.getElementById('auth-role').value;
+                    if(!name) throw new Error("Name required");
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     await updateProfile(cred.user, { displayName: name });
-                    // Profile data listener will handle the creation of the user doc
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        displayName: name, role, email, isPrivate: false, savedPosts: [], following: [], createdAt: serverTimestamp()
+                    });
                 }
-            } catch (err) {
-                errorDiv.innerText = err.message;
-                errorDiv.classList.remove('hidden');
+            } catch(err) {
+                authError.innerText = err.message.replace('Firebase: ', '');
+                authError.classList.remove('hidden');
             }
+            submitBtn.disabled = false;
+            submitBtn.innerText = isLogin ? 'Sign In' : 'Create Account';
         };
 
-        // Start App
-        init();
-
+        // Initial Icon Load
+        lucide.createIcons();
     </script>
 </body>
 </html>
